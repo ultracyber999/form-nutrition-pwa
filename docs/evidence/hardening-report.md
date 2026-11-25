@@ -1,7 +1,7 @@
 # FORM P0 release-candidate hardening report
 
 Date: 2026-11-26  
-Hardening commits: `3d5e3be`, `4d0d873`, `c575fad`, `0bfe956`; clean-checkout validation commit: `c575fad`.
+Hardening commits: `3d5e3be`, `4d0d873`, `c575fad`, `0bfe956`, `9b947ad`; clean-checkout validation commit: `9b947ad`.
 
 ## Status legend
 
