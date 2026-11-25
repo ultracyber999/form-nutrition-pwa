@@ -1,7 +1,7 @@
 # FORM release-readiness report
 
 Date: 2026-11-25  
-Implementation commit: `8b53f6c`; evidence commit: pending in this document's commit.
+Implementation commit: `8b53f6c`; evidence commit: `c8cffb1`.
 
 ## Verdict
 
