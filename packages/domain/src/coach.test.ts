@@ -154,3 +154,33 @@ describe('deterministic coach policy', () => {
     expect(changed.inputFingerprint).not.toBe(first.inputFingerprint);
   });
 });
+
+describe('coach branch safety hardening', () => {
+  it('paused and concerning-symptom safety states override all other branches', () => {
+    const paused = reviewCoach({ ...fixture([105, 104.9, 104.8]), safety: { paused: true, concerningSymptoms: false } });
+    expect(paused.status).toBe('safety-review');
+    expect(paused.reasonCodes).toContain('user-or-clinician-paused-review');
+    const symptoms = reviewCoach({ ...fixture([105, 104.9, 104.8]), safety: { paused: false, concerningSymptoms: true } });
+    expect(symptoms.reasonCodes).toContain('concerning-symptoms-reported');
+  });
+  it('high hunger alone, sparse food logs, rapid recent loss and ambiguous trend use distinct safe branches', () => {
+    expect(reviewCoach(fixture([105, 104.9, 104.8], { hunger: 5 })).reasonCodes).toContain('repeated-high-hunger');
+    const sparseInput = fixture([105, 104.4, 103.8]);
+    sparseInput.diaryDays = sparseInput.diaryDays.filter((_, index) => index % 7 < 4);
+    sparseInput.foodEntries = sparseInput.foodEntries.filter((_, index) => index % 7 < 4);
+    const sparse = reviewCoach(sparseInput);
+    expect(sparse.reasonCodes).toContain('insufficient-complete-food-logs');
+    expect(reviewCoach(fixture([105, 104.8, 103.6])).status).toBe('monitor-fast-loss');
+    expect(reviewCoach(fixture([105, 104.5, 104.2])).status).toBe('monitor');
+  });
+  it('weight-gain and maintenance goal achievement are detected and custom policy versions are preserved', () => {
+    const input = fixture([105, 104.4, 103.8]);
+    input.goal = { id: uuid(98), type: 'weight-gain', baselineKg: 100, targetKg: 103, effectiveFrom: '2026-10-01', status: 'active', createdAt: now, updatedAt: now };
+    input.policyVersion = 'custom-policy-test';
+    const result = reviewCoach(input);
+    expect(result.status).toBe('goal-review');
+    expect(result.policyVersion).toBe('custom-policy-test');
+    input.goal = { ...input.goal, type: 'maintenance', targetKg: 103.5 };
+    expect(reviewCoach(input).status).toBe('goal-review');
+  });
+});
