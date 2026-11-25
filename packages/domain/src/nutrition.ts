@@ -99,23 +99,30 @@ export function recipeTotals(recipe: Recipe): NutrientTotals {
   return sumEntryNutrients(pseudoEntries);
 }
 
+export function recipeTotalNutrients(recipe: Recipe): NutrientProfile {
+  const result = zeroNutrients();
+  for (const key of nutrientKeys) {
+    let unknown = false;
+    let sum = 0;
+    for (const ingredient of recipe.ingredients) {
+      const value = ingredient.nutrientSnapshotPer100g[key];
+      if (value === null) unknown = true;
+      else sum += value * ingredient.quantityG / 100;
+    }
+    result[key] = unknown ? null : sum;
+  }
+  return result;
+}
+
 export function recipePortionNutrients(recipe: Recipe, portion: { grams?: number; servings?: number }): NutrientProfile {
-  const totals = recipeTotals(recipe).totals;
-  const allKnown = recipeTotals(recipe).complete;
-  const base: NutrientProfile = {
-    kcal: allKnown.kcal ? totals.kcal : totals.kcal,
-    proteinG: allKnown.proteinG ? totals.proteinG : totals.proteinG,
-    carbG: allKnown.carbG ? totals.carbG : totals.carbG,
-    fatG: allKnown.fatG ? totals.fatG : totals.fatG,
-    fiberG: allKnown.fiberG ? totals.fiberG : totals.fiberG
-  };
+  const total = recipeTotalNutrients(recipe);
   if (portion.grams !== undefined) {
     if (recipe.yieldG === null) throw new Error('Recipe has no known final mass');
-    return scaleNutrients(base, portion.grams / recipe.yieldG);
+    return scaleNutrients(total, portion.grams / recipe.yieldG);
   }
   if (portion.servings !== undefined) {
     if (recipe.servingCount === null) throw new Error('Recipe has no serving count');
-    return scaleNutrients(base, portion.servings / recipe.servingCount);
+    return scaleNutrients(total, portion.servings / recipe.servingCount);
   }
   throw new Error('Portion requires grams or servings');
 }

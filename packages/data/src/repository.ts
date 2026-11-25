@@ -297,6 +297,30 @@ export class FormRepository {
     return this.db.foodEntries.where('localDate').equals(localDate).sortBy('createdAt');
   }
 
+  async listFoodEntries(): Promise<FoodEntry[]> {
+    return this.db.foodEntries.orderBy('localDate').toArray();
+  }
+
+  async listDiaryDays(): Promise<DiaryDay[]> {
+    return this.db.diaryDays.orderBy('localDate').toArray();
+  }
+
+  async updateProfile(patch: Partial<Pick<Profile, 'locale' | 'timezone' | 'unitPreference' | 'heightCm'>>): Promise<Profile> {
+    const existing = await this.getProfile();
+    if (!existing) throw new RepositoryError('profile-not-found', 'Profile not found');
+    const next = { ...existing, ...patch, updatedAt: this.now() };
+    await this.db.profiles.put(next);
+    return next;
+  }
+
+  async updateGoal(patch: Partial<Pick<Goal, 'type' | 'baselineKg' | 'targetKg' | 'status'>>): Promise<Goal> {
+    const existing = await this.getActiveGoal();
+    if (!existing) throw new RepositoryError('goal-not-found', 'Goal not found');
+    const next = { ...existing, ...patch, updatedAt: this.now() };
+    await this.db.goals.put(next);
+    return next;
+  }
+
   async updateFoodEntry(id: string, patch: { quantity?: number; mealType?: FoodEntry['mealType']; localDate?: string }, zone = 'Asia/Jerusalem'): Promise<FoodEntry> {
     const result = await inTransaction(this.db, [this.db.foodEntries, this.db.diaryDays, this.db.foodVersions, this.db.outbox], async () => {
       const existing = await this.db.foodEntries.get(id);
@@ -492,6 +516,43 @@ export class FormRepository {
       await this.queueOutbox({ entityType: 'recipe', entityId: row.id, operation: 'create', baseVersion: 0, schemaVersion: 1, payloadJson: JSON.stringify(row) });
     });
     return row;
+  }
+
+  async listRecipes(): Promise<Recipe[]> {
+    return (await this.db.recipes.orderBy('name').toArray()).filter((recipe) => recipe.deletedAt === null);
+  }
+
+  async addRecipePortionToDiary(recipeId: string, localDate: string, mealType: FoodEntry['mealType'], portion: { grams?: number; servings?: number }, zone = 'Asia/Jerusalem'): Promise<FoodEntry> {
+    const { recipePortionNutrients } = await import('@form/domain');
+    const recipe = await this.db.recipes.get(recipeId);
+    if (!recipe || recipe.deletedAt !== null) throw new RepositoryError('recipe-not-found', 'Recipe not found');
+    const snapshot = recipePortionNutrients(recipe, portion);
+    const quantity = portion.grams ?? portion.servings;
+    if (quantity === undefined) throw new RepositoryError('invalid-portion', 'Portion requires grams or servings');
+    const now = this.now();
+    const entry: FoodEntry = {
+      id: newUuid(),
+      localDate,
+      mealType,
+      foodVersionId: null,
+      labelSnapshot: recipe.name,
+      quantity,
+      unit: portion.grams !== undefined ? 'g' : 'serving',
+      basis: 'consumed-total',
+      nutrientSnapshot: snapshot,
+      confidence: 'manual-estimate',
+      source: 'recipe',
+      createdAt: now,
+      updatedAt: now,
+      deletedAt: null,
+      version: 1
+    };
+    await inTransaction(this.db, [this.db.foodEntries, this.db.diaryDays, this.db.outbox], async () => {
+      await this.db.foodEntries.add(entry);
+      await this.invalidateDayAfterFoodMutation(localDate, zone);
+      await this.queueOutbox({ entityType: 'foodEntry', entityId: entry.id, operation: 'create', baseVersion: 0, schemaVersion: 1, payloadJson: JSON.stringify(entry) });
+    });
+    return entry;
   }
 
   async saveCoachReview(review: CoachReview): Promise<void> {
