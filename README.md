@@ -4,21 +4,21 @@ FORM is a local-first Hebrew RTL nutrition and weight-management application. Th
 
 ## Status
 
-Current implementation scope: M0 foundation and M1 domain/persistence vertical slice are implemented; P0 UI routes and PWA hardening are in progress. See `docs/evidence/` for exact verified commands and honest limitations.
+Current implementation scope: M0 foundation, M1 domain/persistence, M2 Hebrew RTL P0 routes, and core M3 analytics/coach/backup/PWA are implemented; physical-device and complete accessibility release gates remain open. See `docs/evidence/` for exact verified commands and honest limitations.
 
 No real personal data, cloud credentials, health-record fixtures, or production secrets are stored in this repository. Bundled foods are generic estimates and must be verified against labels where relevant.
 
 ## Requirements
 
 - Node.js 24+ (developed with v24.22.2)
-- pnpm 12.23.0 (managed by Corepack)
+- pnpm 12.16.1 (managed by Corepack)
 
 ## Setup
 
 ```bash
 corepack enable
 pnpm install --frozen-lockfile
-pnpm ci
+pnpm run ci
 pnpm --filter @form/web dev
 ```
 

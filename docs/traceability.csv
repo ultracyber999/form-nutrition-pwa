@@ -1,26 +1,26 @@
 requirement_id,screen,milestone,qa_refs,production_status
-ONB-01,onboarding,M2,QA-04;QA-06;QA-17,IN PROGRESS / target repository implementation
-DASH-01,today,M2,QA-01;QA-03;QA-05;QA-07;QA-17,IN PROGRESS / target repository implementation
-NUT-01,nutrition,M2,QA-01;QA-02;QA-03;QA-05;QA-07;QA-17,IN PROGRESS / target repository implementation
-NUT-02,nutrition,M2,QA-01;QA-02;QA-03;QA-05;QA-07;QA-17,IN PROGRESS / target repository implementation
-NUT-03,nutrition,M2,QA-01;QA-02;QA-03;QA-05;QA-07;QA-17,IN PROGRESS / target repository implementation
-NUT-04,nutrition,M2,QA-01;QA-02;QA-03;QA-05;QA-07;QA-17,IN PROGRESS / target repository implementation
-NUT-05,nutrition,M2,QA-01;QA-02;QA-03;QA-05;QA-07;QA-17,IN PROGRESS / target repository implementation
-NUT-06,nutrition,M2,QA-01;QA-02;QA-03;QA-05;QA-07;QA-17,IN PROGRESS / target repository implementation
-BODY-01,checkin;progress,M2,QA-06;QA-17,IN PROGRESS / target repository implementation
-HAB-01,checkin,M2,QA-06;QA-07;QA-17,IN PROGRESS / target repository implementation
-ANA-01,progress,M3,QA-15;QA-17,IN PROGRESS / target repository implementation
-COACH-01,coach,M3,QA-15,IN PROGRESS / target repository implementation
-PLAN-01,settings;onboarding;coach,M1-M3,QA-04;QA-15,IN PROGRESS / target repository implementation
-DATA-01,settings,M3,QA-13;QA-14;QA-19,IN PROGRESS / target repository implementation
-PWA-01,app-shell,M3,QA-18,IN PROGRESS / target repository implementation
-AUTH-01,settings,M4,QA-12;QA-20,IN PROGRESS / target repository implementation
-SYNC-01,settings;sync-states,M4-M5,QA-08;QA-09;QA-10;QA-11;QA-22,IN PROGRESS / target repository implementation
-CAT-01,nutrition,M6,QA-16;QA-23,IN PROGRESS / target repository implementation
-SCAN-01,nutrition,M6,QA-16,IN PROGRESS / target repository implementation
-NATIVE-01,mobile,M7,QA-17,IN PROGRESS / target repository implementation
-HEALTH-01,settings;checkin,M7,QA-21,IN PROGRESS / target repository implementation
-HEALTH-02,settings;checkin,M8,QA-21,IN PROGRESS / target repository implementation
-NOTIF-01,settings,M7-M8,QA-17,IN PROGRESS / target repository implementation
-AI-01,future,M9,separate-review,IN PROGRESS / target repository implementation
-SaaS-01,future,M9,separate-review,IN PROGRESS / target repository implementation
+ONB-01,onboarding,M2,QA-04;QA-06;QA-17,IMPLEMENTED / locally verified; release QA incomplete
+DASH-01,today,M2,QA-01;QA-03;QA-05;QA-07;QA-17,IMPLEMENTED / locally verified; release QA incomplete
+NUT-01,nutrition,M2,QA-01;QA-02;QA-03;QA-05;QA-07;QA-17,IMPLEMENTED / locally verified; release QA incomplete
+NUT-02,nutrition,M2,QA-01;QA-02;QA-03;QA-05;QA-07;QA-17,IMPLEMENTED / locally verified; release QA incomplete
+NUT-03,nutrition,M2,QA-01;QA-02;QA-03;QA-05;QA-07;QA-17,IMPLEMENTED / locally verified; release QA incomplete
+NUT-04,nutrition,M2,QA-01;QA-02;QA-03;QA-05;QA-07;QA-17,IMPLEMENTED / locally verified; release QA incomplete
+NUT-05,nutrition,M2,QA-01;QA-02;QA-03;QA-05;QA-07;QA-17,IMPLEMENTED / locally verified; release QA incomplete
+NUT-06,nutrition,M2,QA-01;QA-02;QA-03;QA-05;QA-07;QA-17,IMPLEMENTED / locally verified; release QA incomplete
+BODY-01,checkin;progress,M2,QA-06;QA-17,IMPLEMENTED / locally verified; release QA incomplete
+HAB-01,checkin,M2,QA-06;QA-07;QA-17,IMPLEMENTED / locally verified; release QA incomplete
+ANA-01,progress,M3,QA-15;QA-17,IMPLEMENTED / local verification partial; physical device and full accessibility audit pending
+COACH-01,coach,M3,QA-15,IMPLEMENTED / local verification partial; physical device and full accessibility audit pending
+PLAN-01,settings;onboarding;coach,M1-M3,QA-04;QA-15,IMPLEMENTED / locally verified; release QA incomplete
+DATA-01,settings,M3,QA-13;QA-14;QA-19,IMPLEMENTED / local verification partial; physical device and full accessibility audit pending
+PWA-01,app-shell,M3,QA-18,IMPLEMENTED / local verification partial; physical device and full accessibility audit pending
+AUTH-01,settings,M4,QA-12;QA-20,DEFERRED / intentionally hidden in P0
+SYNC-01,settings;sync-states,M4-M5,QA-08;QA-09;QA-10;QA-11;QA-22,DEFERRED / intentionally hidden in P0
+CAT-01,nutrition,M6,QA-16;QA-23,DEFERRED / intentionally hidden in P0
+SCAN-01,nutrition,M6,QA-16,DEFERRED / intentionally hidden in P0
+NATIVE-01,mobile,M7,QA-17,DEFERRED / intentionally hidden in P0
+HEALTH-01,settings;checkin,M7,QA-21,DEFERRED / intentionally hidden in P0
+HEALTH-02,settings;checkin,M8,QA-21,DEFERRED / intentionally hidden in P0
+NOTIF-01,settings,M7-M8,QA-17,DEFERRED / intentionally hidden in P0
+AI-01,future,M9,separate-review,DEFERRED / intentionally hidden in P0
+SaaS-01,future,M9,separate-review,DEFERRED / intentionally hidden in P0
