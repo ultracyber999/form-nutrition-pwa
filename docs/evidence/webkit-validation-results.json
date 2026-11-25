@@ -1,0 +1,121 @@
+{
+  "engine": "Playwright WebKit/WPE on Linux (WebKit engine validation; not Safari or iOS Simulator)",
+  "base": "http://localhost:4373",
+  "date": "2026-11-26",
+  "checks": {
+    "golden180gChicken": {
+      "status": "PASS",
+      "kcalFound": true,
+      "proteinFound": true
+    },
+    "completionMark": {
+      "status": "PASS"
+    },
+    "completionInvalidationOnMutation": {
+      "status": "PASS"
+    },
+    "checkInSave": {
+      "status": "PASS"
+    },
+    "serviceWorkerOnline": {
+      "api": true,
+      "controller": true,
+      "caches": [
+        "form-shell-v1"
+      ]
+    },
+    "mobileViewport390": {
+      "innerWidth": 390,
+      "scrollWidth": 390,
+      "noHorizontalOverflow": true,
+      "pointerCoarse": false
+    },
+    "realOfflineShell": {
+      "status": "PASS",
+      "method": "preview server terminated after service-worker cache warm-up"
+    },
+    "realOfflineWriteAndReload": {
+      "status": "PASS",
+      "offlineWrite": true,
+      "offlinePersist": true
+    }
+  },
+  "axe": {
+    "today": {
+      "violations": 0,
+      "status": "PASS"
+    },
+    "nutrition": {
+      "violations": 0,
+      "status": "PASS"
+    },
+    "progress": {
+      "violations": 0,
+      "status": "PASS"
+    },
+    "check-in": {
+      "violations": 0,
+      "status": "PASS"
+    },
+    "coach": {
+      "violations": 0,
+      "status": "PASS"
+    },
+    "settings": {
+      "violations": 0,
+      "status": "PASS"
+    }
+  },
+  "screenshots": [
+    "docs/evidence/webkit-visual-matrix/today-320-dark.png",
+    "docs/evidence/webkit-visual-matrix/nutrition-320-dark.png",
+    "docs/evidence/webkit-visual-matrix/progress-320-dark.png",
+    "docs/evidence/webkit-visual-matrix/check-in-320-dark.png",
+    "docs/evidence/webkit-visual-matrix/coach-320-dark.png",
+    "docs/evidence/webkit-visual-matrix/settings-320-dark.png",
+    "docs/evidence/webkit-visual-matrix/today-320-light.png",
+    "docs/evidence/webkit-visual-matrix/nutrition-320-light.png",
+    "docs/evidence/webkit-visual-matrix/progress-320-light.png",
+    "docs/evidence/webkit-visual-matrix/check-in-320-light.png",
+    "docs/evidence/webkit-visual-matrix/coach-320-light.png",
+    "docs/evidence/webkit-visual-matrix/settings-320-light.png",
+    "docs/evidence/webkit-visual-matrix/today-390-dark.png",
+    "docs/evidence/webkit-visual-matrix/nutrition-390-dark.png",
+    "docs/evidence/webkit-visual-matrix/progress-390-dark.png",
+    "docs/evidence/webkit-visual-matrix/check-in-390-dark.png",
+    "docs/evidence/webkit-visual-matrix/coach-390-dark.png",
+    "docs/evidence/webkit-visual-matrix/settings-390-dark.png",
+    "docs/evidence/webkit-visual-matrix/today-390-light.png",
+    "docs/evidence/webkit-visual-matrix/nutrition-390-light.png",
+    "docs/evidence/webkit-visual-matrix/progress-390-light.png",
+    "docs/evidence/webkit-visual-matrix/check-in-390-light.png",
+    "docs/evidence/webkit-visual-matrix/coach-390-light.png",
+    "docs/evidence/webkit-visual-matrix/settings-390-light.png",
+    "docs/evidence/webkit-visual-matrix/today-768-dark.png",
+    "docs/evidence/webkit-visual-matrix/nutrition-768-dark.png",
+    "docs/evidence/webkit-visual-matrix/progress-768-dark.png",
+    "docs/evidence/webkit-visual-matrix/check-in-768-dark.png",
+    "docs/evidence/webkit-visual-matrix/coach-768-dark.png",
+    "docs/evidence/webkit-visual-matrix/settings-768-dark.png",
+    "docs/evidence/webkit-visual-matrix/today-768-light.png",
+    "docs/evidence/webkit-visual-matrix/nutrition-768-light.png",
+    "docs/evidence/webkit-visual-matrix/progress-768-light.png",
+    "docs/evidence/webkit-visual-matrix/check-in-768-light.png",
+    "docs/evidence/webkit-visual-matrix/coach-768-light.png",
+    "docs/evidence/webkit-visual-matrix/settings-768-light.png",
+    "docs/evidence/webkit-visual-matrix/today-1440-dark.png",
+    "docs/evidence/webkit-visual-matrix/nutrition-1440-dark.png",
+    "docs/evidence/webkit-visual-matrix/progress-1440-dark.png",
+    "docs/evidence/webkit-visual-matrix/check-in-1440-dark.png",
+    "docs/evidence/webkit-visual-matrix/coach-1440-dark.png",
+    "docs/evidence/webkit-visual-matrix/settings-1440-dark.png",
+    "docs/evidence/webkit-visual-matrix/today-1440-light.png",
+    "docs/evidence/webkit-visual-matrix/nutrition-1440-light.png",
+    "docs/evidence/webkit-visual-matrix/progress-1440-light.png",
+    "docs/evidence/webkit-visual-matrix/check-in-1440-light.png",
+    "docs/evidence/webkit-visual-matrix/coach-1440-light.png",
+    "docs/evidence/webkit-visual-matrix/settings-1440-light.png"
+  ],
+  "notes": [],
+  "browserVersion": "26.0"
+}

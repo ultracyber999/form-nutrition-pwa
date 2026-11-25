@@ -15,9 +15,9 @@ PASS / FAIL / BLOCKED / NOT RUN / NOT APPLICABLE are explicit. This is self-veri
 | Historical data integrity | PASS locally | immutable snapshots and effective-dated plan tests; vertical slice and mutation tests |
 | Backup/migration/recovery | PASS locally | corrupt import, duplicate legacy import, completion undo, export/reopen/restore tests |
 | Chromium validation | PASS | production preview E2E smoke, offline navigation, zero axe violations on six routes |
-| WebKit validation | NOT RUN | WebKit browser downloaded, but launch BLOCKED because the VM lacks required system libraries (`libgtk-4`, `libgraphene`, `libwoff2`, GStreamer/libavif dependencies) and no sudo authorization is available |
-| Visual matrix | PASS with caveat | 48 CDP screenshot files at 320/390/768/1440 dark/light in `visual-matrix/`; manual contact-sheet inspection completed. Caveat: scrollable 320px Chromium pages laid out at 327 CSS px because headless Chromium subtracts scrollbar width despite mobile emulation, so the 320 captures are close visual evidence but not a certified exact mobile layout |
-| Automated accessibility | PASS | axe WCAG 2A/2AA/22AA: 0 violations on Today, Nutrition, Check-in, Progress, Coach, Settings |
+| WebKit engine validation | PASS with platform caveat | Playwright WebKit/WPE launched after userland dependency provisioning. Golden slice, completion invalidation, check-in save, service-worker-controlled real-offline shell/write/reload, axe on six routes and 390px overflow checks PASS. This is WebKit-engine validation on Linux, **not** Safari or iOS Simulator certification; `pointer:coarse` remains false in the harness |
+| Visual matrix | PASS with platform caveat | 48 exact-pixel WebKit/WPE screenshots at 320/390/768/1440 dark/light in `webkit-visual-matrix/`; contact sheets in `webkit-contact-sheets/` manually inspected. These are exact viewport-pixel WebKit captures, but WPE on Linux is not physical iPhone Safari and does not emulate coarse-pointer/safe-area behavior |
+| Automated accessibility | PASS | axe WCAG 2A/2AA/21AA/22AA: 0 violations on Today, Nutrition, Check-in, Progress, Coach, Settings in both Chromium evidence and the WebKit validation run |
 | Manual/assistive accessibility | PARTIAL | keyboard smoke PASS: 18 tab stops per six core routes remained visible; dialog focus trap and Escape close PASS. Screen reader, full zoom/reflow and exhaustive manual matrix remain NOT RUN |
 | Performance realistic scale | PASS | 9,855 entries / 365 days: bulk write 216ms, read 68.2ms, analytics 0.7ms, export 29.9ms |
 | Offline startup | PASS | production Chromium CDP offline navigation to `/progress` returned 200 and rendered app |
@@ -37,8 +37,11 @@ PASS / FAIL / BLOCKED / NOT RUN / NOT APPLICABLE are explicit. This is self-veri
 | High | Domain critical branch coverage below 90% | Fixed with behavioral hardening tests; threshold now met per module |
 | Medium | Weight/protein tile precision rounded 89.5kg to 90kg | Fixed with explicit decimal display and regression utility coverage |
 | Medium | 320px date navigator flex overflow | Fixed input shrink/max-width; matrix recaptured |
+| Medium | Mobile meal-row/grid min-content width caused horizontal overflow and clipped controls in narrow WebKit viewports | Fixed with `minmax(0, 1fr)` shell tracks, mobile single-column meal rows and wrapping row actions; WebKit 390px scrollWidth now exactly 390 and 320px screenshots show both date arrows |
+| Medium | Desktop RTL sidebar rendered on the left although the design contract requires a right sidebar | Fixed desktop grid order/template; WebKit 1440px contact sheets show the sidebar on the right |
+| Low | Nutrient progress-bar accessible names could be confused with manual nutrient inputs | Progress bars now use explicit `סיכום …` accessible names while input labels remain field-specific |
 | Medium | Recipe workflow absent in first implementation | Implemented basic creation from gram-based diary rows with explicit final yield |
-| Low | 320px screenshot exactness limited by Chromium scrollbar emulation | Documented; physical browser inspection still required |
+| Low | Chromium 320px screenshot exactness limited by headless scrollbar emulation | Superseded by exact-pixel WebKit/WPE matrix for layout inspection; physical browser inspection still required |
 
 ## Coverage report
 
@@ -66,6 +69,21 @@ Automated IndexedDB/fake-indexeddb smoke, synthetic data only: 365 days × 27 en
 - JSON imports are schema-validated, size-limited, dry-runnable, transactional and produce a pre-import backup. Legacy migration uses deterministic IDs to avoid duplicate imports.
 - CSV formula-like cells are escaped.
 - Server security headers remain NOT RUN/BLOCKED until an authorized host exists.
+
+## WebKit/WPE validation — PASS with platform caveat
+
+`node scripts/validate-webkit.mjs` validates the production build in Playwright WebKit/WPE. Latest results are machine-readable in `webkit-validation-results.json`:
+
+- 180 g cooked chicken golden case: PASS (`297` kcal and `55.8` g protein rendered).
+- Complete-day confirmation and mutation invalidation: PASS.
+- Check-in save: PASS.
+- Service worker API/controller/cache present online: PASS.
+- Real offline test method: the script warms the cache, terminates the preview server, reloads, writes a manual food entry offline, reloads again and verifies persistence: PASS.
+- axe WCAG scans on six routes: 0 violations.
+- 390px layout: `innerWidth` 390, `scrollWidth` 390, no measured horizontal overflow after responsive fixes.
+- Exact-pixel matrix: 48 screenshots covering six routes × 320/390/768/1440 × dark/light.
+
+Important limitation: this is WebKit/WPE on Linux, not Safari, macOS, iOS Simulator, or a physical iPhone. The harness reports `pointer:coarse=false`, so touch/safe-area/inertial scrolling behavior remains unverified.
 
 ## Physical iPhone acceptance checklist — NOT RUN
 
@@ -101,6 +119,15 @@ Visual matrix regeneration requires a populated synthetic backup and running pre
 FORM_IMPORT_FILE=/path/to/synthetic-backup.json node scripts/capture-visual-matrix.mjs
 ```
 
+WebKit engine validation is self-contained and starts its own production preview:
+
+```bash
+pnpm --filter @form/web build
+node scripts/validate-webkit.mjs
+```
+
+The script writes `docs/evidence/webkit-validation-results.json` and 48 screenshots. It requires Playwright WebKit host dependencies. On this Ubuntu VM they were provisioned without sudo by downloading/extracting the missing Jammy libraries into the Playwright WebKit cache; on a clean machine use the normal Playwright dependency installation path or an appropriately provisioned macOS/Linux host. This environment setup is not an application runtime dependency.
+
 ## Remaining release decision
 
-Local engineering hardening is substantially improved, but production acceptance remains **NO-GO** because physical iPhone, full manual assistive-technology validation, WebKit, exhaustive service-worker upgrade testing and deployment-header verification remain open.
+Local engineering hardening is substantially improved, and WebKit-engine functional/offline/visual smoke now passes. Production acceptance remains **NO-GO** because physical iPhone/Safari, iOS Simulator or macOS Safari validation, full manual assistive-technology/zoom validation, exhaustive service-worker upgrade testing and deployment-header verification remain open. A macOS child session was attempted for the remaining platform validation but could not start because the organization quota returned `out_of_quota`.

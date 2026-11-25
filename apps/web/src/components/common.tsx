@@ -42,7 +42,7 @@ export function MacroBar({ label, consumed, target, className, unit = 'ג׳' }: 
   return (
     <div className="macro-row">
       <header><span>{label}</span><bdi className="num">{fmt(consumed, 1)} / {target === null ? '—' : fmt(target)} {unit}</bdi></header>
-      <div className="progress-track" role="img" aria-label={`${label}: ${fmt(consumed, 1)} מתוך ${target === null ? 'לא ידוע' : fmt(target)} גרם`}>
+      <div className="progress-track" role="img" aria-label={`סיכום ${label}: ${fmt(consumed, 1)} מתוך ${target === null ? 'לא ידוע' : fmt(target)} גרם`}>
         <div className={`progress-fill ${className}`} style={{ inlineSize: `${Math.min(100, ratio * 100)}%` }} />
       </div>
     </div>

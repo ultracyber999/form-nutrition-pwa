@@ -37,12 +37,15 @@ Cloud auth/sync, RLS, external food providers, barcode scanning, real health-dat
 
 ## P0 hardening update — 2026-11-26
 
-Hardening evidence commit `582650d` supersedes the earlier coverage/performance gaps where explicitly stated. Critical branch coverage now passes per module; realistic-scale performance, clean-checkout reproducibility, automated axe checks, exact-width visual matrix, offline startup and offline write/reload persistence are documented in `hardening-report.md`. Production acceptance remains **NO-GO** because physical iPhone, WebKit, full manual assistive-technology/zoom validation, exhaustive service-worker upgrade testing and authorized deployment-header verification remain open.
+Hardening evidence in `hardening-report.md` supersedes the earlier coverage/performance gaps where explicitly stated. Critical branch coverage now passes per module; realistic-scale performance, clean-checkout reproducibility, automated axe checks, offline startup and offline write/reload persistence are documented there.
+
+WebKit/WPE engine validation now passes for the production build: the 180g chicken golden case, completion invalidation, check-in save, real offline shell/write/reload, zero axe violations on six routes, and an exact-pixel 48-viewport visual matrix at 320/390/768/1440 in dark/light. This validation also exposed and fixed real responsive defects: narrow-viewport horizontal overflow/clipping and desktop RTL sidebar placement. It remains Linux WebKit/WPE evidence, **not** Safari, iOS Simulator, or physical-iPhone certification; the harness reports `pointer:coarse=false`.
+
+Production acceptance remains **NO-GO** because physical iPhone/Safari or macOS/iOS Simulator validation, full manual assistive-technology/zoom validation, exhaustive service-worker upgrade testing and authorized deployment-header verification remain open. A macOS child validation session was requested but could not start because the organization quota returned `out_of_quota`.
 
 ## Next gate before release
 
-1. Raise critical-module coverage and re-run CI.
-2. Complete keyboard, screen-reader, zoom/reflow and WCAG 2.2 AA audit.
-3. Run physical iPhone/WebKit smoke including install, offline restart, touch targets and safe areas.
-4. Capture 320/768 dark/light evidence.
-5. Create authorized private remote repository/CI if desired and add hosting security headers before any deployment.
+1. Complete physical iPhone/Safari or macOS/iOS Simulator smoke including install, offline restart, touch targets, safe areas, keyboard behavior and VoiceOver.
+2. Complete manual screen-reader, zoom/reflow, text-scaling and exhaustive WCAG 2.2 AA audit.
+3. Exercise service-worker upgrade/stale-cache rollback matrix without local-data loss.
+4. Create authorized private remote repository/CI if desired and add hosting security headers before any deployment.
