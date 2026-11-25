@@ -1,0 +1,13 @@
+# Rollback and recovery notes
+
+## Local application rollback
+
+The P0 app is static/local-first. Roll back by serving the prior immutable build artifact. Because IndexedDB schema migrations can be forward-only, do not deploy a destructive schema version without an export prompt and compatibility review. Current schema version: Dexie v1.
+
+## Data rollback
+
+Use the newest pre-import versioned JSON export. Import into a clean browser profile first when possible and verify counts/totals before replacing the active browser dataset. Preserve failed import files privately for diagnosis; do not attach real personal data to issues or CI.
+
+## Future cloud rollback (deferred)
+
+M4+ must add additive database migrations, backward-compatible sync schema versions, backup/restore drills, tombstone retention and client compatibility windows. No cloud rollback is currently claimed.

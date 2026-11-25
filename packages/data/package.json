@@ -1,0 +1,24 @@
+{
+  "name": "@form/data",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "exports": { ".": "./src/index.ts" },
+  "scripts": {
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "build": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@form/contracts": "workspace:*",
+    "@form/domain": "workspace:*",
+    "@form/test-data": "workspace:*",
+    "dexie": "4.4.7",
+    "zod": "4.6.7"
+  },
+  "devDependencies": {
+    "fake-indexeddb": "6.2.8",
+    "vitest": "3.2.4",
+    "typescript": "5.9.3"
+  }
+}

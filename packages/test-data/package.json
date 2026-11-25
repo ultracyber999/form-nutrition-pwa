@@ -1,0 +1,14 @@
+{
+  "name": "@form/test-data",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "exports": { ".": "./src/index.ts" },
+  "scripts": {
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "build": "tsc --noEmit"
+  },
+  "dependencies": { "@form/contracts": "workspace:*" },
+  "devDependencies": { "vitest": "3.2.4", "typescript": "5.9.3" }
+}
