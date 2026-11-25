@@ -15,10 +15,10 @@ PASS / FAIL / BLOCKED / NOT RUN / NOT APPLICABLE are explicit. This is self-veri
 | Historical data integrity | PASS locally | immutable snapshots and effective-dated plan tests; vertical slice and mutation tests |
 | Backup/migration/recovery | PASS locally | corrupt import, duplicate legacy import, completion undo, export/reopen/restore tests |
 | Chromium validation | PASS | production preview E2E smoke, offline navigation, zero axe violations on six routes |
-| WebKit validation | NOT RUN | WebKit/browser engine unavailable on this Linux VM |
-| Visual matrix | PASS with caveat | 48 exact-width CDP screenshots at 320/390/768/1440 dark/light in `visual-matrix/`; Chromium scrollbar emulation can subtract up to 7 CSS px at 320, so final physical browser inspection remains required |
+| WebKit validation | NOT RUN | WebKit browser downloaded, but launch BLOCKED because the VM lacks required system libraries (`libgtk-4`, `libgraphene`, `libwoff2`, GStreamer/libavif dependencies) and no sudo authorization is available |
+| Visual matrix | PASS with caveat | 48 CDP screenshot files at 320/390/768/1440 dark/light in `visual-matrix/`; manual contact-sheet inspection completed. Caveat: scrollable 320px Chromium pages laid out at 327 CSS px because headless Chromium subtracts scrollbar width despite mobile emulation, so the 320 captures are close visual evidence but not a certified exact mobile layout |
 | Automated accessibility | PASS | axe WCAG 2A/2AA/22AA: 0 violations on Today, Nutrition, Check-in, Progress, Coach, Settings |
-| Manual/assistive accessibility | PARTIAL / NOT RUN | semantic RTL/focus/dialog/table alternatives present; full keyboard matrix, screen reader, zoom/reflow not completed |
+| Manual/assistive accessibility | PARTIAL | keyboard smoke PASS: 18 tab stops per six core routes remained visible; dialog focus trap and Escape close PASS. Screen reader, full zoom/reflow and exhaustive manual matrix remain NOT RUN |
 | Performance realistic scale | PASS | 9,855 entries / 365 days: bulk write 216ms, read 68.2ms, analytics 0.7ms, export 29.9ms |
 | Offline startup | PASS | production Chromium CDP offline navigation to `/progress` returned 200 and rendered app |
 | Offline CRUD | PASS | scripted production-browser test: offline manual food write rendered immediately and persisted after offline reload |
