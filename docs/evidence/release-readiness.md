@@ -37,7 +37,7 @@ Cloud auth/sync, RLS, external food providers, barcode scanning, real health-dat
 
 ## P0 hardening update — 2026-11-26
 
-Hardening evidence commit `75d9811` supersedes the earlier coverage/performance gaps where explicitly stated. Critical branch coverage now passes per module; realistic-scale performance, clean-checkout reproducibility, automated axe checks, exact-width visual matrix, offline startup and offline write/reload persistence are documented in `hardening-report.md`. Production acceptance remains **NO-GO** because physical iPhone, WebKit, full manual assistive-technology/zoom validation, exhaustive service-worker upgrade testing and authorized deployment-header verification remain open.
+Hardening evidence commit `582650d` supersedes the earlier coverage/performance gaps where explicitly stated. Critical branch coverage now passes per module; realistic-scale performance, clean-checkout reproducibility, automated axe checks, exact-width visual matrix, offline startup and offline write/reload persistence are documented in `hardening-report.md`. Production acceptance remains **NO-GO** because physical iPhone, WebKit, full manual assistive-technology/zoom validation, exhaustive service-worker upgrade testing and authorized deployment-header verification remain open.
 
 ## Next gate before release
 
