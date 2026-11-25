@@ -21,6 +21,7 @@
     "react-router-dom": "7.18.7"
   },
   "devDependencies": {
+    "@axe-core/playwright": "4.11.0",
     "@types/react": "19.3.3",
     "@types/react-dom": "19.3.0",
     "@vitejs/plugin-react": "5.1.2",

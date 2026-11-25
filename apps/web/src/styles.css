@@ -66,7 +66,8 @@ svg { flex-shrink: 0; }
 .pill.danger { color: var(--danger); border-color: color-mix(in srgb, var(--danger) 45%, var(--line)); }
 
 .date-nav { display: flex; justify-content: center; align-items: center; gap: 12px; margin-block: 10px 16px; }
-.date-nav .date-text { min-width: 126px; text-align: center; font-weight: 900; direction: ltr; unicode-bidi: isolate; }
+.date-nav .date-text { flex: 1 1 auto; width: auto; min-width: 0; max-width: 240px; text-align: center; font-weight: 900; direction: ltr; unicode-bidi: isolate; }
+.date-nav .icon-button { flex: 0 0 auto; }
 
 .budget-layout { display: grid; grid-template-columns: 1fr auto; align-items: center; gap: 18px; }
 .ring-wrap { position: relative; width: 132px; height: 132px; }

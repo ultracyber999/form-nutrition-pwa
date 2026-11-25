@@ -18,7 +18,7 @@ describe('realistic local-scale performance smoke', () => {
     for (let day = 0; day < 365; day += 1) {
       const date = new Date(Date.UTC(2026, 0, 1) + day * 86400000).toISOString().slice(0, 10);
       for (let meal = 0; meal < 27; meal += 1) {
-        entries.push({ id: id(n++), localDate: date, mealType: meal % 2 ? 'lunch' : 'dinner', foodVersionId: cookedChicken100g.id, labelSnapshot: 'synthetic scale meal', quantity: 180, unit: 'g', basis: 'mass-grams', nutrientSnapshot: cookedChicken100g.nutrients, confidence: 'catalog', source: 'catalog', createdAt: now, updatedAt: now, deletedAt: null, version: 1 });
+        entries.push({ id: id(n++), localDate: date, mealType: meal % 2 ? 'lunch' : 'dinner', foodVersionId: cookedChicken100g.id, labelSnapshot: 'synthetic scale meal', quantity: 180, unit: 'g', basis: 'mass-grams', nutrientSnapshot: cookedChicken100g.nutrients, confidence: 'generic-estimate', source: 'catalog', createdAt: now, updatedAt: now, deletedAt: null, version: 1 });
       }
     }
     expect(entries.length).toBe(9855);
