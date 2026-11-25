@@ -1,7 +1,7 @@
 # FORM P0 release-candidate hardening report
 
 Date: 2026-11-26  
-Hardening commits: `3d5e3be`, `4d0d873`, `c575fad`; clean-checkout validation commit: `c575fad`.
+Hardening commits: `3d5e3be`, `4d0d873`, `c575fad`, `0bfe956`; clean-checkout validation commit: `c575fad`.
 
 ## Status legend
 
@@ -21,7 +21,7 @@ PASS / FAIL / BLOCKED / NOT RUN / NOT APPLICABLE are explicit. This is self-veri
 | Manual/assistive accessibility | PARTIAL / NOT RUN | semantic RTL/focus/dialog/table alternatives present; full keyboard matrix, screen reader, zoom/reflow not completed |
 | Performance realistic scale | PASS | 9,855 entries / 365 days: bulk write 216ms, read 68.2ms, analytics 0.7ms, export 29.9ms |
 | Offline startup | PASS | production Chromium CDP offline navigation to `/progress` returned 200 and rendered app |
-| Offline CRUD | PASS by architecture + repository tests / PARTIAL browser evidence | all writes are local IndexedDB transactions; no network dependency. A separate scripted browser offline-write pass is still desirable |
+| Offline CRUD | PASS | scripted production-browser test: offline manual food write rendered immediately and persisted after offline reload |
 | Service-worker update lifecycle | PARTIAL | network-first navigation and versioned asset caching implemented; upgrade/stale-cache matrix not exhaustively tested |
 | Reproducible clean build | PASS | fresh `git clone` + `pnpm install --frozen-lockfile` + `pnpm run ci` exited 0 |
 | Production dependency audit | PASS | `pnpm audit --prod`: no known vulnerabilities |
