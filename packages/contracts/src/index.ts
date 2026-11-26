@@ -154,6 +154,7 @@ export const dailyCheckinSchema = z.object({
   hunger1to5: z.number().int().min(1).max(5).nullable(),
   energy1to5: z.number().int().min(1).max(5).nullable(),
   notes: z.string().max(2000).nullable(),
+  concerningSymptoms: z.boolean().optional(),
   createdAt: isoDateTimeSchema,
   updatedAt: isoDateTimeSchema,
   version: z.number().int().positive()

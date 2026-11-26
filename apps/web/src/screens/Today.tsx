@@ -11,7 +11,8 @@ export function TodayScreen() {
   const { repo, timezone } = useForm();
   const navigate = useNavigate();
   const today = todayInTimeZone(timezone);
-  const [date, setDate] = useState(today);
+  const [selectedDate, setSelectedDate] = useState<string | null>(null);
+  const date = selectedDate ?? today;
   const state = useAsync(async () => {
     const [entries, diary, plans, measurements, checkins, goal] = await Promise.all([
       repo.entriesForDate(date),
@@ -39,7 +40,7 @@ export function TodayScreen() {
   return (
     <div className="stack-lg">
       <PageHeader kicker="FORM / TODAY" title="תמונת המצב שלך" subtitle="יום אחד בכל פעם. נתונים בחורים, החלטות בחירות, והכל מתועד." />
-      <DateNavigator date={date} onChange={(next) => { setDate(next); }} />
+      <DateNavigator date={date} onChange={(next) => { setSelectedDate(next === today ? null : next); }} />
       <div className="desktop-two today-hero-grid">
         <Card className="hero-card">
           <div className="split"><h2>קלוריות ומאקרו</h2><span className={`pill ${completion === 'complete' ? 'good' : completion === 'partial' ? 'warn' : ''}`}>{completion === 'complete' ? 'יום שלם' : completion === 'partial' ? 'יום חלקי' : 'אין רישום'}</span></div>

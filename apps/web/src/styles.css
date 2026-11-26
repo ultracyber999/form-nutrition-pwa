@@ -278,3 +278,5 @@ body {
 .evidence-table table { min-width: 560px; }
 
 .hero-actions .primary-button, .hero-actions .secondary-button { white-space: nowrap; font-size: 15px; }
+.check-row { display: flex; align-items: center; gap: 10px; min-height: 44px; font-weight: 700; }
+.check-row input[type="checkbox"] { inline-size: 22px; block-size: 22px; accent-color: var(--accent); }

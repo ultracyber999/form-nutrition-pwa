@@ -47,7 +47,8 @@ export function CoachScreen() {
     const [plans, goal, measurements, diaryDays, foodEntries, checkins, reviews] = await Promise.all([
       repo.listPlans(), repo.getCurrentGoal(), repo.listMeasurements(), repo.listDiaryDays(), repo.listFoodEntries(), repo.listCheckins(), repo.listCoachReviews()
     ]);
-    const result = reviewCoach({ asOfDate: today, timezone, plans, goal, measurements, diaryDays, foodEntries, checkins, safety: { paused: goal?.status === 'paused' } });
+    const todaysCheckin = checkins.find((row) => row.localDate === today);
+    const result = reviewCoach({ asOfDate: today, timezone, plans, goal, measurements, diaryDays, foodEntries, checkins, safety: { paused: goal?.status === 'paused', concerningSymptoms: todaysCheckin?.concerningSymptoms === true } });
     return { result, plans, reviews };
   }, []);
   if (state.loading) return <PageHeader kicker="FORM / COACH" title="סקירה והמלצות" subtitle="מחשב ראיות…" />;

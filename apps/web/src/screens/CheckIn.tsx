@@ -20,6 +20,7 @@ export function CheckInScreen() {
   const [hunger, setHunger] = useState('');
   const [energy, setEnergy] = useState('');
   const [notes, setNotes] = useState('');
+  const [concerningSymptoms, setConcerningSymptoms] = useState(false);
   const [dirty, setDirty] = useState(false);
   const [error, setError] = useState('');
   const [saving, setSaving] = useState(false);
@@ -39,6 +40,7 @@ export function CheckInScreen() {
     setHunger(checkin?.hunger1to5?.toString() ?? '');
     setEnergy(checkin?.energy1to5?.toString() ?? '');
     setNotes(checkin?.notes ?? '');
+    setConcerningSymptoms(checkin?.concerningSymptoms ?? false);
     const preferredWeight = state.data.measurements.find((row) => row.type === 'weight' && row.preferred);
     const preferredWaist = state.data.measurements.find((row) => row.type === 'waist' && row.preferred);
     setWeight(preferredWeight?.value.toString() ?? '');
@@ -77,7 +79,8 @@ export function CheckInScreen() {
         trainingStatus: training === 'unknown' ? null : training as 'strength' | 'rest' | 'other',
         hunger1to5: nullableNumber(hunger),
         energy1to5: nullableNumber(energy),
-        notes: notes.trim() || null
+        notes: notes.trim() || null,
+        concerningSymptoms
       }, measurements);
       setDirty(false);
       refresh();
@@ -117,6 +120,8 @@ export function CheckInScreen() {
           <div className="field"><label htmlFor="energy">אנרגיה (1–5)</label><input className="input" id="energy" inputMode="numeric" min="1" max="5" value={energy} onChange={(e) => mark(setEnergy)(e.target.value)} /></div>
         </div>
         <div className="field"><label htmlFor="notes">הערות</label><textarea className="input" id="notes" value={notes} onChange={(e) => { setNotes(e.target.value); setDirty(true); }} /></div>
+        <label className="check-row" htmlFor="concerning-symptoms"><input id="concerning-symptoms" type="checkbox" checked={concerningSymptoms} onChange={(e) => { setConcerningSymptoms(e.target.checked); setDirty(true); }} /><span>נרשמו היום תסמינים מדאיגים</span></label>
+        {concerningSymptoms ? <div className="notice danger">אם מדובר בהתעלפות, כאב בחזה או חולשה חמורה — פנו לבדיקה רפואית דחופה. FORM לא יציע הפחתת קלוריות במצב זה.</div> : null}
         {error ? <div className="notice danger" role="alert">{error}</div> : null}
         <div className="button-row"><button className="primary-button" type="button" disabled={saving} onClick={() => void save()}>{saving ? 'שומר במכשיר…' : 'שמירת צ׳ק-אין'}</button>{dirty ? <span className="pill warn">יש שינויים שלא נשמרו</span> : <span className="pill good">הכול שמור</span>}</div>
       </Card>

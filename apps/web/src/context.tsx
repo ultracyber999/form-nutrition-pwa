@@ -1,4 +1,5 @@
 import { FormDatabase, FormRepository } from '@form/data';
+import { todayInTimeZone } from '@form/domain';
 import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from 'react';
 
 const repository = new FormRepository(new FormDatabase('form-local'));
@@ -18,6 +19,7 @@ type FormContextValue = {
   setAnnounce: (message: string) => void;
   storageError: string | null;
   timezone: string;
+  currentDate: string;
 };
 
 const FormContext = createContext<FormContextValue | null>(null);
@@ -30,6 +32,26 @@ export function FormProvider({ children }: { children: ReactNode }) {
   const [announce, setAnnounce] = useState('');
   const [storageError, setStorageError] = useState<string | null>(null);
   const [timezone, setTimezone] = useState('Asia/Jerusalem');
+  const [currentDate, setDateStamp] = useState(() => todayInTimeZone('Asia/Jerusalem'));
+
+  useEffect(() => {
+    const updateDate = () => setDateStamp((current) => {
+      const next = todayInTimeZone(timezone);
+      return current === next ? current : next;
+    });
+    updateDate();
+    const interval = window.setInterval(updateDate, 30000);
+    const updateWhenVisible = () => {
+      if (document.visibilityState === 'visible') updateDate();
+    };
+    document.addEventListener('visibilitychange', updateWhenVisible);
+    window.addEventListener('focus', updateDate);
+    return () => {
+      window.clearInterval(interval);
+      document.removeEventListener('visibilitychange', updateWhenVisible);
+      window.removeEventListener('focus', updateDate);
+    };
+  }, [timezone]);
 
   useEffect(() => {
     let cancelled = false;
@@ -63,7 +85,7 @@ export function FormProvider({ children }: { children: ReactNode }) {
 
   const refresh = useCallback(() => setRefreshKey((value) => value + 1), []);
   const setTheme = useCallback((next: ThemePreference) => setThemeState(next), []);
-  const value = useMemo(() => ({ repo: repository, ready, refreshKey, refresh, needsOnboarding, setNeedsOnboarding, theme, setTheme, announce, setAnnounce, storageError, timezone }), [ready, refreshKey, refresh, needsOnboarding, theme, setTheme, announce, storageError, timezone]);
+  const value = useMemo(() => ({ repo: repository, ready, refreshKey, refresh, needsOnboarding, setNeedsOnboarding, theme, setTheme, announce, setAnnounce, storageError, timezone, currentDate }), [ready, refreshKey, refresh, needsOnboarding, theme, setTheme, announce, storageError, timezone, currentDate]);
   return <FormContext.Provider value={value}>{children}</FormContext.Provider>;
 }
 
