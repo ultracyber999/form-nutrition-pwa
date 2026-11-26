@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { Link } from 'react-router-dom';
 import type { Goal, Profile } from '@form/contracts';
 import { deriveCarbTargetG, todayInTimeZone, validatePlanTargets } from '@form/domain';
 import { useForm } from '../context';
@@ -116,6 +117,7 @@ export function SettingsScreen() {
   return (
     <div className="stack-lg">
       <PageHeader kicker="07 / CONTROL" title="הגדרות ונתונים" subtitle="תכנית, פרטיות, גיבוי ושחזור — בשליטת המשתמש." />
+      <Card><h2>הפרופיל האישי</h2><p className="card-muted">שם ודוא״ל מקומיים, ללא חשבון ענן או אימות דוא״ל.</p><Link className="secondary-button" to="/profile">עריכת פרופיל</Link></Card>
       {error ? <div className="notice danger" role="alert">{error}</div> : null}
       {notice ? <div className="notice">{notice}</div> : null}
       <div className="desktop-two">

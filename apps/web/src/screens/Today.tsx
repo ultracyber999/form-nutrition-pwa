@@ -15,7 +15,7 @@ export function TodayScreen() {
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
   const date = selectedDate ?? today;
   const state = useAsync(async () => {
-    const [entries, diary, plans, measurements, checkins, goal, diaryDays, workouts] = await Promise.all([
+    const [entries, diary, plans, measurements, checkins, goal, diaryDays, workouts, archive, identity] = await Promise.all([
       repo.entriesForDate(date),
       repo.diaryDay(date),
       repo.listPlans(),
@@ -23,14 +23,16 @@ export function TodayScreen() {
       repo.listCheckins(),
       repo.getCurrentGoal(),
       repo.listDiaryDays(),
-      repo.listWorkouts()
+      repo.listWorkouts(),
+      repo.getHistoryArchive(),
+      repo.getLocalIdentity()
     ]);
-    return { entries, diary, plans, measurements, checkins, goal, diaryDays, workouts };
+    return { entries, diary, plans, measurements, checkins, goal, diaryDays, workouts, archive, identity };
   }, [date, timezone]);
 
   if (state.loading) return <PageHeader kicker="NIVNE / TODAY" title="טוען את המצב שלך" subtitle="טוען נתונים…" />;
   if (state.error || !state.data) return <div className="notice danger" role="alert">{state.error ?? 'לא ניתן לטעון'}</div>;
-  const { entries, diary, plans, measurements, checkins, goal, diaryDays, workouts } = state.data;
+  const { entries, diary, plans, measurements, checkins, goal, diaryDays, workouts, archive, identity } = state.data;
   const plan = resolvePlanForDate(plans, date);
   const totals = sumEntryNutrients(entries);
   const activeEntries = entries.filter((entry) => entry.deletedAt === null);
@@ -45,7 +47,7 @@ export function TodayScreen() {
   const dates = dateRange(date, 7);
   const week = dates.map((d) => {
     const row = checkins.find((c) => c.localDate === d);
-    return { date: d, training: workouts.some(w=>w.localDate===d && w.exercises.some(e=>e.sets.some(s=>s.kind!=='warmup'))) ? 'strength' : row?.trainingStatus ?? null, food: diaryStatus(diaryDays.find((x) => x.localDate === d)), weighed: weights.some((w) => w.localDate === d) };
+    return { date: d, training: archive?.sessions.some(s=>s.localDate===d) || workouts.some(w=>w.localDate===d && w.exercises.some(e=>e.sets.some(s=>s.kind!=='warmup'))) ? 'strength' : row?.trainingStatus ?? null, food: diaryStatus(diaryDays.find((x) => x.localDate === d)), weighed: weights.some((w) => w.localDate === d) };
   });
   const strengthDays = week.filter((d) => d.training === 'strength').length;
   const completeDays = week.filter((d) => d.food === 'complete').length;
@@ -67,7 +69,8 @@ export function TodayScreen() {
 
   return (
     <div className="stack-lg command-center">
-      <div className="daily-heading"><div><p className="route-kicker">01 / DAILY</p><h2 className="page-title">{date === today ? 'היום שלי' : 'היום שנבחר'}</h2><p className="page-subtitle">{dateLabel(date)}</p></div><Link className="daily-coach-link secondary-button" to="/coach">סקירת NIVNE</Link></div>
+      <div className="daily-heading"><div><p className="route-kicker">01 / DAILY</p><h2 className="page-title">{date === today ? identity ? 'שלום, ' + identity.displayName : 'היום שלי' : 'היום שנבחר'}</h2><p className="page-subtitle">{dateLabel(date)}</p></div><Link className="daily-coach-link secondary-button" to="/coach">סקירת NIVNE</Link></div>
+      <div className="button-row"><Link className="secondary-button" to="/profile">הפרופיל שלי</Link><Link className="secondary-button" to="/history">ניתוח היסטוריית כוח</Link></div>
       <DateNavigator date={date} onChange={(next) => { if (next) setSelectedDate(next === today ? null : next); }} />
       {date !== today ? <button className="ghost-button back-today" type="button" onClick={() => setSelectedDate(null)}>חזרה להיום</button> : null}
       <div className="desktop-two today-hero-grid">

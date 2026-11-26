@@ -62,6 +62,7 @@ export function TrainingScreen() {
  }
  return <div className="stack-lg training-page">
   <PageHeader kicker="03 / STRENGTH" title="יומן אימונים" subtitle="כל סט בונה את הדרך. כוח, נפח עבודה ושיאים מתועדים."/>
+  <Card className="history-entry"><div><p className="route-kicker">STRENGTH / HISTORY</p><h2>היסטוריה וניתוח ביצועים</h2><p className="card-muted">ייבוא ארכיון מלא, עוגני כוח וניתוח נתונים חלקיים.</p></div><Link className="primary-button" to="/history">פתח ניתוח היסטורי</Link></Card>
   {state.error?<div role="alert" className="notice danger">{state.error}</div>:null}
   {error?<div role="alert" className="notice danger">{error}</div>:null}
   {message?<div role="status" className="notice">{message}</div>:null}

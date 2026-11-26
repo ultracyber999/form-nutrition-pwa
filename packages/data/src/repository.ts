@@ -12,9 +12,11 @@ import type {
   NutritionPlan,
   Profile,
   Recipe,
-  WorkoutSession
+  WorkoutSession,
+  HistoryArchive,
+  LocalIdentity
 } from '@form/contracts';
-import { workoutsSchema, workoutSessionSchema, exportBundleSchema, foodEntrySchema, measurementSchema, dailyCheckinSchema, nutritionPlanSchema, profileSchema, goalSchema, foodVersionSchema, mealTemplateSchema, recipeSchema, coachReviewSchema } from '@form/contracts';
+import { historyArchiveSchema, localIdentitySchema, workoutsSchema, workoutSessionSchema, exportBundleSchema, foodEntrySchema, measurementSchema, dailyCheckinSchema, nutritionPlanSchema, profileSchema, goalSchema, foodVersionSchema, mealTemplateSchema, recipeSchema, coachReviewSchema } from '@form/contracts';
 import { calculateConsumed, compareDates, deriveCarbTargetG, todayInTimeZone, validatePlanTargets } from '@form/domain';
 import { builtinFoods } from '@form/test-data';
 import type { Table } from 'dexie';
@@ -655,6 +657,24 @@ export class FormRepository {
     return this.db.coachReviews.orderBy('asOfDate').reverse().toArray();
   }
 
+  async getLocalIdentity(): Promise<LocalIdentity|null> {
+    return localIdentitySchema.nullable().parse((await this.db.meta.get('nivne-identity-v1'))?.value ?? null);
+  }
+  async saveLocalIdentity(value:LocalIdentity|null):Promise<void>{
+    await this.db.meta.put({key:'nivne-identity-v1',value:localIdentitySchema.nullable().parse(value)});
+  }
+  async getHistoryArchive():Promise<HistoryArchive|null>{
+    return historyArchiveSchema.nullable().parse((await this.db.meta.get('nivne-history-v1'))?.value ?? null);
+  }
+  async saveHistoryArchive(value:HistoryArchive, identity?:LocalIdentity):Promise<void>{
+    const archive=historyArchiveSchema.parse(value);
+    const validIdentity=identity===undefined?undefined:localIdentitySchema.parse(identity);
+    await inTransaction(this.db,[this.db.meta],async()=>{
+      await this.db.meta.put({key:'nivne-history-v1',value:archive});
+      if(validIdentity!==undefined)await this.db.meta.put({key:'nivne-identity-v1',value:validIdentity});
+    });
+  }
+
   async listWorkouts(): Promise<WorkoutSession[]> {
     const row = await this.db.meta.get('workouts-v1');
     return workoutsSchema.parse(row?.value ?? []);
@@ -686,7 +706,7 @@ export class FormRepository {
   }
 
   async exportBundle(): Promise<ExportBundle> {
-    const [profile, goal, nutritionPlans, foodVersions, foodEntries, diaryDays, measurements, dailyCheckins, mealTemplates, recipes, coachReviews, workouts] = await Promise.all([
+    const [profile, goal, nutritionPlans, foodVersions, foodEntries, diaryDays, measurements, dailyCheckins, mealTemplates, recipes, coachReviews, workouts, historyArchive, localIdentity] = await Promise.all([
       this.getProfile(),
       this.getCurrentGoal(),
       this.db.nutritionPlans.toArray(),
@@ -698,7 +718,9 @@ export class FormRepository {
       this.db.mealTemplates.toArray(),
       this.db.recipes.toArray(),
       this.db.coachReviews.toArray(),
-      this.listWorkouts()
+      this.listWorkouts(),
+      this.getHistoryArchive(),
+      this.getLocalIdentity()
     ]);
     const bundle: ExportBundle = {
       format: 'form-export',
@@ -715,7 +737,9 @@ export class FormRepository {
       mealTemplates,
       recipes,
       coachReviews,
-      workouts
+      workouts,
+      historyArchive,
+      localIdentity
     };
     return exportBundleSchema.parse(bundle);
   }
@@ -742,7 +766,9 @@ export class FormRepository {
       mealTemplates: bundle.mealTemplates.length,
       recipes: bundle.recipes.length,
       coachReviews: bundle.coachReviews.length,
-      workouts: bundle.workouts?.length ?? 0
+      workouts: bundle.workouts?.length ?? 0,
+      historyArchive: bundle.historyArchive?.sessions.length ?? 0,
+      localIdentity: bundle.localIdentity ? 1 : 0
     };
     const duplicates: Record<string, number> = {};
     const checks: Array<[string, string[]]> = [
@@ -798,6 +824,9 @@ export class FormRepository {
       await putRows('mealTemplates', bundle.mealTemplates);
       await putRows('recipes', bundle.recipes);
       await putRows('coachReviews', bundle.coachReviews);
+      // Missing fields in older backups preserve independently recorded local data.
+      if(bundle.historyArchive!==undefined&&(mode==='replace-all'||!(await this.getHistoryArchive())))await this.db.meta.put({key:'nivne-history-v1',value:bundle.historyArchive});
+      if(bundle.localIdentity!==undefined&&(mode==='replace-all'||!(await this.getLocalIdentity())))await this.db.meta.put({key:'nivne-identity-v1',value:bundle.localIdentity});
       // Older nutrition-only backups do not erase independently recorded workouts.
       if (bundle.workouts !== undefined) {
         if (mode === 'replace-all') await this.db.meta.put({key:'workouts-v1',value:bundle.workouts});

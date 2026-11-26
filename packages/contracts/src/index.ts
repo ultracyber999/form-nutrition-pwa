@@ -273,6 +273,52 @@ export type WorkoutSet = z.infer<typeof workoutSetSchema>;
 export const workoutsSchema = z.array(workoutSessionSchema).max(3000).refine(rows => new Set(rows.map(row => row.id)).size === rows.length, 'duplicate workout IDs');
 export const workoutImportSchema = z.object({format:z.literal('form-workouts'),schemaVersion:z.literal(1),sessions:workoutsSchema});
 
+
+export const localIdentitySchema = z.object({
+  displayName: z.string().trim().min(1).max(100),
+  email: z.email().max(254).nullable()
+});
+export type LocalIdentity = z.infer<typeof localIdentitySchema>;
+// Passthrough retains source evidence, notes and alternate interpretations unchanged.
+export const archiveSegmentSchema = z.object({
+  id: uuidSchema,
+  weight_value: z.number().min(0).max(5000).nullable(),
+  weight_unit: z.enum(['kg','lb','bodyweight']),
+  weight_basis: z.enum(['machine_stack','per_side','per_hand','external_load','total_plate_load','barbell_plates_per_side','unknown_cable_basis','bodyweight']),
+  two_side_multiplier: z.union([z.literal(1),z.literal(2)]).nullable(),
+  reps: z.number().positive().max(300).nullable(),
+  segment_role: z.enum(['primary','drop','backoff','superset_a','superset_b']),
+  approximate_reps: z.boolean(),
+  partial_reps_unknown: z.boolean(),
+  excluded_partial_reps_count: z.number().nonnegative().nullable(),
+  failure: z.boolean(),
+  independentCalculation: z.object({issues:z.array(z.string().max(100)).max(30)}).passthrough()
+}).passthrough();
+export const archiveExerciseSchema = z.object({
+  id:uuidSchema, nameHe:z.string().min(1).max(200), nameEn:z.string().min(1).max(200),
+  equipment:z.string().max(200), configuration:z.string().max(500),
+  sets:z.array(z.object({id:uuidSchema, kind:z.enum(['working','drop','backoff','superset','warmup']),segments:z.array(archiveSegmentSchema).min(1).max(20)}).passthrough()).min(1).max(100)
+}).passthrough();
+export const archiveSessionSchema = z.object({
+  id:uuidSchema,localDate:isoDateSchema,title:z.string().min(1).max(200),
+  phase:z.enum(['neutral','pre-cut','cut','maintenance','other']),
+  exercises:z.array(archiveExerciseSchema).min(1).max(60)
+}).passthrough();
+export const historyArchiveSchema = z.object({
+ format:z.literal('nivne-history-archive'),schemaVersion:z.literal(1),
+ sessions:z.array(archiveSessionSchema).max(3000)
+}).passthrough().superRefine((archive,ctx)=>{
+ const ids=new Set<string>();
+ const dates=new Set<string>();
+ const add=(id:string)=>{if(ids.has(id))ctx.addIssue({code:'custom',message:'duplicate archive ID'});ids.add(id);};
+ for(const s of archive.sessions){add(s.id);if(dates.has(s.localDate))ctx.addIssue({code:'custom',message:'duplicate archive date'});dates.add(s.localDate);
+ for(const e of s.exercises){add(e.id);for(const t of e.sets){add(t.id);for(const p of t.segments)add(p.id);}}}
+});
+export type HistoryArchive=z.infer<typeof historyArchiveSchema>;
+export type ArchiveSession=z.infer<typeof archiveSessionSchema>;
+export type ArchiveSegment=z.infer<typeof archiveSegmentSchema>;
+export const personalSetupSchema=z.object({format:z.literal('nivne-personal-setup'),schemaVersion:z.literal(1),identity:localIdentitySchema,archive:historyArchiveSchema});
+
 export const exportBundleSchema = z.object({
   format: z.literal('form-export'),
   schemaVersion: z.literal(1),
@@ -288,7 +334,9 @@ export const exportBundleSchema = z.object({
   mealTemplates: z.array(mealTemplateSchema),
   recipes: z.array(recipeSchema),
   coachReviews: z.array(coachReviewSchema),
-  workouts: workoutsSchema.optional()
+  workouts: workoutsSchema.optional(),
+  historyArchive: historyArchiveSchema.nullable().optional(),
+  localIdentity: localIdentitySchema.nullable().optional()
 });
 export type ExportBundle = z.infer<typeof exportBundleSchema>;
 

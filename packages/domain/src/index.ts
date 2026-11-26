@@ -5,3 +5,5 @@ export * from './analytics';
 export * from './coach';
 
 export * from './workouts';
+
+export * from './history';

@@ -9,6 +9,8 @@ import { NutritionScreen } from './screens/Nutrition';
 import { ProgressScreen } from './screens/Progress';
 import { CheckInScreen } from './screens/CheckIn';
 import { CoachScreen } from './screens/Coach';
+import { HistoryScreen } from './screens/History';
+import { IdentityScreen } from './screens/Identity';
 import { TrainingScreen } from './screens/Training';
 import { SettingsScreen } from './screens/Settings';
 
@@ -36,6 +38,8 @@ export function App() {
         <Route path="/today" element={needsOnboarding ? <Navigate to="/onboarding" replace /> : shell(<TodayScreen />)} />
         <Route path="/nutrition/:date" element={needsOnboarding ? <Navigate to="/onboarding" replace /> : shell(<NutritionScreen />)} />
         <Route path="/training" element={needsOnboarding ? <Navigate to="/onboarding" replace /> : shell(<TrainingScreen />)} />
+        <Route path="/history" element={needsOnboarding ? <Navigate to="/onboarding" replace /> : shell(<HistoryScreen />)} />
+        <Route path="/profile" element={needsOnboarding ? <Navigate to="/onboarding" replace /> : shell(<IdentityScreen />)} />
         <Route path="/progress" element={needsOnboarding ? <Navigate to="/onboarding" replace /> : shell(<ProgressScreen />)} />
         <Route path="/check-in/:date" element={needsOnboarding ? <Navigate to="/onboarding" replace /> : shell(<CheckInScreen />)} />
         <Route path="/coach" element={needsOnboarding ? <Navigate to="/onboarding" replace /> : shell(<CoachScreen />)} />
