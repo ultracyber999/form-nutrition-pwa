@@ -1,0 +1,65 @@
+{
+  "environment": "Chromium persistent profile, real IndexedDB, production static server",
+  "base": "http://localhost:4481",
+  "checks": {
+    "installAndOnlinePersistence": {
+      "status": "PASS",
+      "initialSw": {
+        "controller": true,
+        "caches": [
+          "form-shell-build-e170cfdd3030"
+        ],
+        "version": 10
+      }
+    },
+    "offlineCrudAndPersistence": {
+      "status": "PASS",
+      "offlineRendered": true,
+      "offlineStatus": 200,
+      "offlineBodyStart": "דלג לתוכן\n☀\nFORM.\n\nFORM / TODAY\n\nתמונת המצב שלך\n\nיום אחד בכל פעם. נתונים בחורים, החלטות בחירות, והכל מתועד.\n\n‹\nתאריך נבחר\n›\nקלוריות שנותרו\n◌\n1,703 קל׳\nעל בסיס י",
+      "entries": 2
+    },
+    "upgradeActivationCacheTransition": {
+      "status": "PASS",
+      "beforeCaches": [
+        "form-shell-build-e170cfdd3030"
+      ],
+      "afterCaches": [
+        "form-shell-build-upgradev2"
+      ],
+      "logicalEquivalent": true
+    },
+    "staleCachedShellDoesNotOverrideUpdate": {
+      "status": "PASS"
+    },
+    "concurrentTabDataAccess": {
+      "status": "PASS"
+    },
+    "backupRestoreAfterUpgrade": {
+      "status": "PASS",
+      "entries": 2
+    },
+    "interruptedBrowserRestartPersistence": {
+      "status": "PASS"
+    },
+    "failedUpdateInstallationRecovery": {
+      "status": "PASS",
+      "caches": [
+        "form-shell-build-upgradev2"
+      ]
+    },
+    "applicationRollbackSchemaCompatibility": {
+      "status": "PASS",
+      "databaseVersion": 10
+    },
+    "databaseSchemaMigrations": {
+      "status": "NOT APPLICABLE",
+      "reason": "production schema is still version 1; upgrade/rollback preserve version 1. Legacy import migration and failed-import rollback are covered by repository tests."
+    },
+    "storageQuotaFailures": {
+      "status": "BLOCKED",
+      "reason": "no deterministic browser-supported quota-failure emulation is available in this environment; recovery copy is documented rather than claimed tested"
+    }
+  },
+  "limitations": []
+}

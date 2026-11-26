@@ -3,7 +3,7 @@ import tseslint from 'typescript-eslint';
 import reactHooks from 'eslint-plugin-react-hooks';
 
 export default [
-  { ignores: ['**/dist/**', '**/coverage/**', '**/node_modules/**', '**/dev-dist/**', 'apps/web/public/sw.js'] },
+  { ignores: ['**/dist/**', '**/coverage/**', '**/node_modules/**', '**/dev-dist/**', '**/.tmp/**', 'apps/web/public/sw.js'] },
   js.configs.recommended,
   ...tseslint.configs.strictTypeChecked.map((config) => ({ ...config, files: ['**/*.{ts,tsx}'] })),
   {

@@ -1,5 +1,7 @@
 # FORM P0 release-candidate hardening report
 
+> **ARCHIVAL RC2 EVIDENCE — superseded for current acceptance decisions by `release-readiness.md` RC3.** Retained for historical traceability; do not use stale coverage/responsive claims here as current status.
+
 Date: 2026-11-26  
 Hardening commits: `3d5e3be`, `4d0d873`, `c575fad`, `0bfe956`, `9b947ad`; clean-checkout validation commit: `9b947ad`.
 

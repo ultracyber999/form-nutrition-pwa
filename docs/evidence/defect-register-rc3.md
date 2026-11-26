@@ -1,0 +1,16 @@
+# FORM RC3 defect register
+
+| ID | Severity | Status | Defect / gate | Evidence and resolution |
+|---|---:|---|---|---|
+| RC3-001 | P0 | FIXED | Quick-add search results could become difficult to operate in the small-screen bottom sheet because the list and action controls competed for the same constrained height. | `result-list` is height-capped and independently scrollable; Chromium production click probe at 390×844 passes; UX workflow evidence PASS. |
+| RC3-002 | P1 | FIXED | Recent foods were not prioritized when quick-add opened with an empty query, and recent-panel preselection could race dialog mounting. | Recents are prioritized, URL food preselection is synchronized after navigation; `recentPanelPreselection` PASS in `ux-workflow-results.json`. |
+| RC3-003 | P1 | FIXED | Daily check-in required indirect navigation despite being a core morning workflow. | Today hero now exposes a direct check-in action; automated morning workflow is 3 interactions in `ux-workflow-results.json`. |
+| RC3-004 | P1 | FIXED | Offline operation was not explicitly communicated, risking uncertainty about local persistence. | Offline pill/banner now communicate local-only saving; `offlineStatusCommunication` PASS. |
+| RC3-005 | P0 | FIXED | Storage/load failure copy was screen-reader-only or generic and did not guide safe recovery. | Visible fixed alert plus backup/storage guidance; load failure guidance added to async error copy. Quota failure itself remains BLOCKED because deterministic browser emulation is unavailable. |
+| RC3-006 | P1 | FIXED | Deployment cache name was static, weakening deterministic upgrade/cache-transition validation. | Production build now derives service-worker cache name from a content hash; upgrade activation evidence PASS. |
+| RC3-007 | P2 | FIXED | Permissions-Policy emitted an unrecognized `bluetooth` feature token in Chromium. | Token removed; local header verification shows no unsupported feature token. |
+| RC3-008 | P0 harness | FIXED | Offline durability harness initially reloaded `/onboarding` after seeding rather than returning to `/today`, producing a false render failure. | Harness now navigates back to `/today`; offline render/write/reload PASS with real IndexedDB. |
+| RC3-009 | P0 harness | FIXED | Benchmark selector targeted the underlying page's first `.result-option` rather than the modal result, producing a false pointer-interception failure. | Selector scoped to `.dialog .result-option`; final benchmark evidence records actual results. |
+| RC3-010 | P0 | OPEN / OWNER-DEPENDENT | Physical iPhone Safari, installed-PWA, VoiceOver, dynamic type, and real touch acceptance have not been performed. | NOT RUN; requires owner device and trusted HTTPS origin. See `docs/runbooks/private-device-preview.md`. |
+| RC3-011 | P0 | BLOCKED | Deterministic storage-quota failure could not be emulated with supported browser automation on this VM. | Documented BLOCKED, not claimed PASS; visible recovery copy is implemented. Owner/browser manual verification required. |
+| RC3-012 | P1 | NOT APPLICABLE | Database schema upgrade beyond production schema v1 cannot be tested because no v2 schema exists. | Rollback/schema compatibility at v1 PASS; legacy import migration/rollback covered in repository tests. |

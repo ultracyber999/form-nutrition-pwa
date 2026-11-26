@@ -1,0 +1,84 @@
+{
+  "environment": "Chromium production build; automated interaction/manual inspection proxy; no screen reader installed",
+  "checks": {
+    "axe": {
+      "/today": {
+        "violations": 0,
+        "status": "PASS"
+      },
+      "/nutrition/2026-11-26": {
+        "violations": 0,
+        "status": "PASS"
+      },
+      "/progress": {
+        "violations": 0,
+        "status": "PASS"
+      },
+      "/check-in/2026-11-26": {
+        "violations": 0,
+        "status": "PASS"
+      },
+      "/coach": {
+        "violations": 0,
+        "status": "PASS"
+      },
+      "/settings": {
+        "violations": 0,
+        "status": "PASS"
+      }
+    },
+    "dialogFocus": {
+      "status": "PASS",
+      "initialFocus": true,
+      "trapHeld": true,
+      "restored": true,
+      "activeBefore": "INPUT"
+    },
+    "keyboardOrder": {
+      "status": "PASS",
+      "stops": 30,
+      "visible": 30
+    },
+    "targetSizes": {
+      "status": "PASS",
+      "checked": 12,
+      "small": 0
+    },
+    "textAndSemantic": {
+      "lang": "he",
+      "dir": "rtl",
+      "hasLiveRegion": true,
+      "tables": 0,
+      "status": "INFO"
+    },
+    "reducedMotion": {
+      "status": "PASS",
+      "transitionDuration": "1e-05s"
+    },
+    "textScaling200Percent": {
+      "status": "PASS",
+      "innerWidth": 390,
+      "scrollWidth": 390,
+      "overflow": false,
+      "limitation": "browser text-size approximation, not physical OS dynamic type"
+    },
+    "zoom200Approximation": {
+      "status": "PASS",
+      "innerWidth": 640,
+      "scrollWidth": 640,
+      "overflow": false,
+      "limitation": "640px layout approximates 200% zoom at 1280px"
+    },
+    "reflow320": {
+      "status": "PASS",
+      "innerWidth": 320,
+      "scrollWidth": 320,
+      "overflow": false,
+      "limitation": "exact 320 CSS-pixel reflow viewport"
+    },
+    "screenReader": {
+      "status": "NOT RUN",
+      "reason": "no supported screen reader is installed on this Linux VM; VoiceOver remains physical-device acceptance"
+    }
+  }
+}

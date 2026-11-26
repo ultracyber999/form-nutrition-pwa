@@ -1,0 +1,116 @@
+{
+  "environment": "production static server, real browser IndexedDB, persistent profiles, 365 days/~10k entries",
+  "base": "http://localhost:4482",
+  "results": {
+    "chromium": {
+      "seed": {
+        "entries": 9855,
+        "days": 365,
+        "measurements": 365,
+        "checkins": 365,
+        "reused": false
+      },
+      "seedMs": 969.2,
+      "coldLoadMs": 851.6148110000001,
+      "warmLoadMs": {
+        "samples": [
+          787,
+          785,
+          783
+        ],
+        "median": 784.9,
+        "p95": 787
+      },
+      "progressMs": 788.5974249999999,
+      "coachMs": 776.055284,
+      "settingsMs": 781.093597,
+      "repositoryMicrobenchmarks": {
+        "searchMs": 1.9,
+        "createMs": 7.1,
+        "editMs": 3.9,
+        "queryMs": 0.7,
+        "exportMs": 77.9,
+        "importMs": 1749.9,
+        "rows": 28,
+        "exportBytes": 5150041
+      },
+      "uiFoodSearchMs": 39.8,
+      "uiCreateInteractionMs": 541,
+      "runtime": {
+        "longTasks": [],
+        "longTaskCount": 0,
+        "memory": 68,
+        "resources": [
+          {
+            "name": "index-DBntr693.js",
+            "duration": 0,
+            "transferSize": 0
+          },
+          {
+            "name": "index-BbtNoy8K.css",
+            "duration": 0,
+            "transferSize": 0
+          }
+        ]
+      }
+    },
+    "webkit": {
+      "seed": {
+        "entries": 9855,
+        "days": 365,
+        "measurements": 365,
+        "checkins": 365,
+        "reused": false
+      },
+      "seedMs": 2631.2,
+      "coldLoadMs": 879.1656379999986,
+      "warmLoadMs": {
+        "samples": [
+          765,
+          762,
+          780
+        ],
+        "median": 764.8,
+        "p95": 779.5
+      },
+      "progressMs": 765.6467850000008,
+      "coachMs": 770.2677580000018,
+      "settingsMs": 762.1090230000009,
+      "repositoryMicrobenchmarks": {
+        "searchMs": 13,
+        "createMs": 15,
+        "editMs": 13,
+        "queryMs": 1,
+        "exportMs": 99,
+        "importMs": 3703,
+        "rows": 28,
+        "exportBytes": 5150041
+      },
+      "uiFoodSearchMs": 36.5,
+      "uiCreateInteractionMs": 550.7,
+      "runtime": {
+        "longTasks": [],
+        "longTaskCount": 0,
+        "memory": null,
+        "resources": [
+          {
+            "name": "index-DBntr693.js",
+            "duration": 0,
+            "transferSize": 0
+          },
+          {
+            "name": "index-BbtNoy8K.css",
+            "duration": 1,
+            "transferSize": 0
+          }
+        ]
+      }
+    }
+  },
+  "limitations": [
+    "WebKit is Linux WebKit/WPE, not Safari, iOS Simulator, or physical iPhone.",
+    "Navigation measurements use waitUntil networkidle plus a fixed 250ms settle delay; they are workflow/render proxies, not pure browser navigation metrics.",
+    "Resource transferSize/duration can be zero when served from browser or service-worker caches and therefore are not a bundle-network benchmark.",
+    "Synthetic entries are uniform catalog entries; they validate scale behavior but not every real-world data mixture."
+  ]
+}

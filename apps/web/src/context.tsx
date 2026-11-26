@@ -16,6 +16,7 @@ type FormContextValue = {
   setTheme: (theme: ThemePreference) => void;
   announce: string;
   setAnnounce: (message: string) => void;
+  storageError: string | null;
 };
 
 const FormContext = createContext<FormContextValue | null>(null);
@@ -26,6 +27,7 @@ export function FormProvider({ children }: { children: ReactNode }) {
   const [needsOnboarding, setNeedsOnboarding] = useState(false);
   const [theme, setThemeState] = useState<ThemePreference>(() => localStorage.getItem('form.theme') === 'light' ? 'light' : 'dark');
   const [announce, setAnnounce] = useState('');
+  const [storageError, setStorageError] = useState<string | null>(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -41,7 +43,9 @@ export function FormProvider({ children }: { children: ReactNode }) {
         if (!cancelled) {
           setNeedsOnboarding(false);
           setReady(true);
-          setAnnounce('לא ניתן לטעון את האחסון המקומי');
+          const message = 'לא ניתן לטעון את האחסון המקומי. בדקו שטח אחסון פנוי, הרשאות דפדפן ומצב גלישה פרטית; אם חלק מהנתונים נטענים, יצאו גיבוי לפני ניקוי אחסון.';
+          setStorageError(message);
+          setAnnounce(message);
         }
       });
     return () => { cancelled = true; };
@@ -54,7 +58,7 @@ export function FormProvider({ children }: { children: ReactNode }) {
 
   const refresh = useCallback(() => setRefreshKey((value) => value + 1), []);
   const setTheme = useCallback((next: ThemePreference) => setThemeState(next), []);
-  const value = useMemo(() => ({ repo: repository, ready, refreshKey, refresh, needsOnboarding, setNeedsOnboarding, theme, setTheme, announce, setAnnounce }), [ready, refreshKey, refresh, needsOnboarding, theme, setTheme, announce]);
+  const value = useMemo(() => ({ repo: repository, ready, refreshKey, refresh, needsOnboarding, setNeedsOnboarding, theme, setTheme, announce, setAnnounce, storageError }), [ready, refreshKey, refresh, needsOnboarding, theme, setTheme, announce, storageError]);
   return <FormContext.Provider value={value}>{children}</FormContext.Provider>;
 }
 

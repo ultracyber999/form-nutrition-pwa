@@ -10,7 +10,7 @@ export function useAsync<T>(load: () => Promise<T>, deps: unknown[]): { data: T 
     load().then((data) => {
       if (!cancelled) setState({ data, loading: false, error: null });
     }).catch((error: unknown) => {
-      if (!cancelled) setState({ data: null, loading: false, error: error instanceof Error ? error.message : 'שגיאה לא ידועה' });
+      if (!cancelled) setState({ data: null, loading: false, error: `${error instanceof Error ? error.message : 'שגיאה לא ידועה'}. אם הבעיה נמשכת, ייצאו גיבוי לפני ניקוי אחסון או שינוי דפדפן` });
     });
     return () => { cancelled = true; };
   // eslint-disable-next-line react-hooks/exhaustive-deps

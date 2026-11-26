@@ -1,17 +1,23 @@
 /* eslint-disable no-undef */
-import { chromium } from 'playwright';
 import fs from 'node:fs';
+import { createRequire } from 'node:module';
+const { chromium } = createRequire(new URL('../apps/web/package.json', import.meta.url))('playwright');
 const routes=[['today','/today'],['nutrition','/nutrition/2026-11-25'],['checkin','/check-in/2026-11-25'],['progress','/progress'],['coach','/coach'],['settings','/settings']];
 const widths=[320,390,768,1440], themes=['dark','light'];
 const browser=await chromium.launch({executablePath:'/home/ubuntu/.local/bin/google-chrome',headless:true});
 const context=await browser.newContext();
 const page=await context.newPage();
-await page.goto('http://localhost:4173/onboarding');
-await page.getByRole('button',{name:'ממשיכים בהקמה'}).click();
-await page.locator('#baseline').fill('90'); await page.locator('#target').fill('80');
-await page.getByRole('button',{name:'המשך לתכנית'}).click();
-await page.locator('#kcal').fill('2000'); await page.locator('#protein').fill('150'); await page.locator('#fat').fill('65');
-await page.getByRole('button',{name:'שמירת תכנית והתחלה'}).click(); await page.waitForURL('**/today');
+await page.goto('http://localhost:4173/today');
+await page.addScriptTag({ url: '/test-utils.js' }).catch(() => null);
+if (await page.evaluate(() => Boolean(window.formTest))) {
+  await page.evaluate(async () => {
+    await window.formTest.ensureBase();
+    const foods = await window.formTest.repo.searchFoods('עוף');
+    if (foods[0] && (await window.formTest.repo.listFoodEntries()).length === 0) {
+      await window.formTest.repo.addFoodEntry({ localDate: '2026-11-25', mealType: 'lunch', foodVersionId: foods[0].id, quantity: 180, unit: 'g' });
+    }
+  });
+}
 await page.goto('http://localhost:4173/settings');
 const importFile = process.env.FORM_IMPORT_FILE;
 if (importFile) {

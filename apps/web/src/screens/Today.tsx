@@ -61,7 +61,7 @@ export function TodayScreen() {
             </div>
           ) : <EmptyState title="לא נמצאה תכנית פעילה לתאריך זה" />}
           {totals.unknownCounts.kcal || totals.unknownCounts.proteinG || totals.unknownCounts.carbG || totals.unknownCounts.fatG || totals.unknownCounts.fiberG ? <p className="notice warn">חלק מהערכים אינם ידועים. מוצג סיכום חלקי, לא אפס מומצא.</p> : null}
-          <div className="split" style={{ marginBlockStart: 14 }}><span className="card-muted">נצרכו <bdi className="num">{fmt(totals.totals.kcal)} קל׳</bdi></span><Link className="primary-button" to={`/nutrition/${date}?add=1`}>+ הוספת אוכל</Link></div>
+          <div className="split" style={{ marginBlockStart: 14 }}><span className="card-muted">נצרכו <bdi className="num">{fmt(totals.totals.kcal)} קל׳</bdi></span><div className="button-row"><Link className="secondary-button" to={`/check-in/${date}`}>צ׳ק-אין</Link><Link className="primary-button" to={`/nutrition/${date}?add=1`}>+ הוספת אוכל</Link></div></div>
         </Card>
         <Card>
           <div className="split"><h2>מגמת משקל</h2><span className="pill">7 ימים</span></div>

@@ -12,7 +12,7 @@ import { SettingsScreen } from './screens/Settings';
 import { todayInTimeZone } from '@form/domain';
 
 export function App() {
-  const { ready, needsOnboarding, announce } = useForm();
+  const { ready, needsOnboarding, announce, storageError } = useForm();
   const location = useLocation();
   const headingRef = useRef<HTMLHeadingElement | null>(null);
 
@@ -30,6 +30,7 @@ export function App() {
   return (
     <>
       <div className="sr-only" aria-live="polite">{announce}</div>
+      {storageError ? <div className="notice danger storage-error" role="alert">{storageError}</div> : null}
       <Routes>
         <Route path="/onboarding" element={<OnboardingScreen />} />
         <Route path="/today" element={needsOnboarding ? <Navigate to="/onboarding" replace /> : shell(<TodayScreen />)} />

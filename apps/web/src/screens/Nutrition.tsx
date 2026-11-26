@@ -109,7 +109,7 @@ export function NutritionScreen() {
           </Card>
         </div>
       </div>
-      {addOpen ? <QuickAddDialog foods={foods} templates={templates} recipes={recipes} date={date} onClose={() => { setAddOpen(false); setSearchParams({}); }} onDone={(message) => { setAddOpen(false); setSearchParams({}); refresh(); setAnnounce(message); }} /> : null}
+      {addOpen ? <QuickAddDialog foods={foods} priorityFoods={recents} initialFoodId={searchParams.get('food')} templates={templates} recipes={recipes} date={date} onClose={() => { setAddOpen(false); setSearchParams({}); }} onDone={(message) => { setAddOpen(false); setSearchParams({}); refresh(); setAnnounce(message); }} /> : null}
     </div>
   );
 }
@@ -164,11 +164,11 @@ function SaveRecipe({ entries, onSave }: { entries: FoodEntry[]; onSave: (name: 
   );
 }
 
-function QuickAddDialog({ foods, templates, recipes, date, onClose, onDone }: { foods: FoodVersion[]; templates: MealTemplate[]; recipes: Recipe[]; date: string; onClose: () => void; onDone: (message: string) => void }) {
+function QuickAddDialog({ foods, priorityFoods = [], initialFoodId = null, templates, recipes, date, onClose, onDone }: { foods: FoodVersion[]; priorityFoods?: FoodVersion[]; initialFoodId?: string | null; templates: MealTemplate[]; recipes: Recipe[]; date: string; onClose: () => void; onDone: (message: string) => void }) {
   const { repo } = useForm();
   const [mode, setMode] = useState<Mode>('search');
   const [query, setQuery] = useState('');
-  const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [selectedId, setSelectedId] = useState<string | null>(initialFoodId);
   const [quantity, setQuantity] = useState('100');
   const [mealType, setMealType] = useState<FoodEntry['mealType']>('lunch');
   const [manualName, setManualName] = useState('');
@@ -180,6 +180,10 @@ function QuickAddDialog({ foods, templates, recipes, date, onClose, onDone }: { 
   const [saving, setSaving] = useState(false);
 
   const dialogRef = useRef<HTMLElement>(null);
+
+  useEffect(() => {
+    if (initialFoodId) setSelectedId(initialFoodId);
+  }, [initialFoodId]);
 
   useEffect(() => {
     const previous = document.activeElement instanceof HTMLElement ? document.activeElement : null;
@@ -213,9 +217,12 @@ function QuickAddDialog({ foods, templates, recipes, date, onClose, onDone }: { 
   const normalize = (value: string) => value.toLocaleLowerCase('he-IL').replace(/[׳'"’`.,()\-\s]+/g, '');
   const results = useMemo(() => {
     const needle = normalize(query);
-    if (!needle) return foods.slice(0, 12);
+    if (!needle) {
+      const priorityIds = new Set(priorityFoods.map((food) => food.id));
+      return [...priorityFoods, ...foods.filter((food) => !priorityIds.has(food.id))].slice(0, 12);
+    }
     return foods.filter((food) => normalize(`${food.name}${food.aliases.join(' ')}`).includes(needle)).slice(0, 12);
-  }, [foods, query]);
+  }, [foods, priorityFoods, query]);
   const selected = foods.find((food) => food.id === selectedId) ?? null;
   const qty = nullableNumber(quantity);
   const preview = selected && qty !== null && qty > 0 ? calculateConsumed(selected, qty, 'mass-grams') : null;

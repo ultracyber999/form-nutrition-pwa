@@ -1,0 +1,30 @@
+/* eslint-disable no-undef */
+import fs from 'node:fs'; import path from 'node:path'; import {createRequire} from 'node:module'; import {createProductionServer} from './serve-production.mjs';
+const require=createRequire(new URL('../apps/web/package.json',import.meta.url)); const {chromium}=require('playwright'); const {AxeBuilder}=require('@axe-core/playwright');
+const root=new URL('..',import.meta.url).pathname; const port=4483; const base=`http://localhost:${port}`; const chrome='/home/ubuntu/.local/bin/google-chrome';
+async function listen(s){await new Promise(r=>s.listen(port,r));return s} async function close(s){s.closeAllConnections?.();await new Promise(r=>s.close(r))}
+const server=await listen(createProductionServer(path.join(root,'apps/web/dist'))); const report={environment:'Chromium production build; automated interaction/manual inspection proxy; no screen reader installed',checks:{}};
+try{
+ const browser=await chromium.launch({headless:true,executablePath:chrome}); const context=await browser.newContext({viewport:{width:390,height:844},reducedMotion:'reduce'}); const page=await context.newPage();
+ await page.goto(`${base}/onboarding`); await page.getByRole('button',{name:'ממשיכים בהקמה'}).click(); await page.locator('#baseline').fill('90'); await page.locator('#target').fill('80'); await page.getByRole('button',{name:'המשך לתכנית'}).click(); await page.locator('#kcal').fill('2000'); await page.locator('#protein').fill('150'); await page.locator('#fat').fill('65'); await page.getByRole('button',{name:'שמירת תכנית והתחלה'}).click(); await page.waitForURL('**/today');
+ const routes=['/today','/nutrition/2026-11-26','/progress','/check-in/2026-11-26','/coach','/settings']; report.checks.axe={};
+ for(const route of routes){await page.goto(`${base}${route}`,{waitUntil:'networkidle'}); const axe=await new AxeBuilder({page}).withTags(['wcag2a','wcag2aa','wcag21a','wcag21aa','wcag22aa']).analyze(); report.checks.axe[route]={violations:axe.violations.length,status:axe.violations.length?'FAIL':'PASS'}}
+ await page.goto(`${base}/nutrition/2026-11-26`,{waitUntil:'networkidle'});
+ const opener=page.getByRole('button',{name:'+ הוספת אוכל'}); await opener.focus(); await page.keyboard.press('Enter'); await page.locator('.dialog').waitFor(); const inDialog=await page.evaluate(()=>document.querySelector('.dialog')?.contains(document.activeElement));
+ const activeBefore=await page.evaluate(()=>document.activeElement?.textContent||document.activeElement?.id||document.activeElement?.tagName);
+ for(let i=0;i<20;i++){await page.keyboard.press('Tab'); const inside=await page.evaluate(()=>document.querySelector('.dialog')?.contains(document.activeElement)); if(!inside)break}
+ const trapHeld=await page.evaluate(()=>document.querySelector('.dialog')?.contains(document.activeElement));
+ await page.keyboard.press('Escape'); await page.waitForTimeout(300); const restored=await page.evaluate(()=>document.activeElement?.textContent?.includes('הוספת אוכל'));
+ report.checks.dialogFocus={status:inDialog&&trapHeld&&restored?'PASS':'FAIL',initialFocus:inDialog,trapHeld,restored,activeBefore};
+ const tabStops=[]; for(let i=0;i<30;i++){await page.keyboard.press('Tab'); tabStops.push(await page.evaluate(()=>{const e=document.activeElement; const r=e?.getBoundingClientRect(); return {tag:e?.tagName,text:(e?.innerText||e?.getAttribute('aria-label')||'').slice(0,30),visible:!!r&&r.width>0&&r.height>0}}))}
+ report.checks.keyboardOrder={status:tabStops.every(x=>x.visible)&&new Set(tabStops.map(x=>x.text+x.tag)).size>5?'PASS':'FAIL',stops:tabStops.length,visible:tabStops.filter(x=>x.visible).length};
+ report.checks.targetSizes=await page.evaluate(()=>{const els=[...document.querySelectorAll('button,a,input,select,textarea')].filter(e=>{const r=e.getBoundingClientRect();return r.width&&r.height&&getComputedStyle(e).visibility!=='hidden'}); const small=els.filter(e=>{const r=e.getBoundingClientRect();return r.height<24||r.width<24}).length; return {status:small===0?'PASS':'FAIL',checked:els.length,small}});
+ report.checks.textAndSemantic=await page.evaluate(()=>({lang:document.documentElement.lang,dir:document.documentElement.dir,hasLiveRegion:!!document.querySelector('[aria-live]'),tables:[...document.querySelectorAll('table')].length,status:'INFO'}));
+ report.checks.reducedMotion=await page.evaluate(()=>{const d=getComputedStyle(document.querySelector('.card')).transitionDuration;return {status:d==='0s'||d==='0.01ms'||d==='1e-05s'?'PASS':'FAIL',transitionDuration:d}});
+ await page.evaluate(()=>{document.documentElement.style.fontSize='200%'}); await page.waitForTimeout(300); const scaled=await page.evaluate(()=>({innerWidth,scrollWidth:document.documentElement.scrollWidth,overflow:document.documentElement.scrollWidth>innerWidth})); report.checks.textScaling200Percent={status:scaled.overflow?'FAIL':'PASS',...scaled,limitation:'browser text-size approximation, not physical OS dynamic type'};
+ await page.evaluate(()=>{document.documentElement.style.fontSize=''});
+ for(const width of [640,320]){await page.setViewportSize({width,height:844}); await page.goto(`${base}/nutrition/2026-11-26`,{waitUntil:'networkidle'}); await page.evaluate(()=>window.scrollTo(0,0)); const r=await page.evaluate(()=>({innerWidth,scrollWidth:document.documentElement.scrollWidth,overflow:document.documentElement.scrollWidth>innerWidth})); report.checks[width===640?'zoom200Approximation':'reflow320']={status:r.overflow?'FAIL':'PASS',...r,limitation:width===640?'640px layout approximates 200% zoom at 1280px':'exact 320 CSS-pixel reflow viewport'}}
+ report.checks.screenReader={status:'NOT RUN',reason:'no supported screen reader is installed on this Linux VM; VoiceOver remains physical-device acceptance'};
+ await browser.close();
+}catch(e){report.fatal=e instanceof Error?e.message:String(e)}
+await close(server); fs.writeFileSync(path.join(root,'docs/evidence/accessibility-validation-results.json'),`${JSON.stringify(report,null,2)}\n`); console.log(JSON.stringify(report.checks,null,2));

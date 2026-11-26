@@ -1,6 +1,7 @@
 import { NavLink, useNavigate } from 'react-router-dom';
 import type { ReactNode, RefObject } from 'react';
 import { todayInTimeZone } from '@form/domain';
+import { useEffect, useState } from 'react';
 import { useForm } from '../context';
 
 const navItems = [
@@ -11,9 +12,21 @@ const navItems = [
   { to: '/settings', label: 'הגדרות', icon: '⚙' }
 ];
 
+function useOnlineStatus() {
+  const [online, setOnline] = useState(() => navigator.onLine);
+  useEffect(() => {
+    const update = () => setOnline(navigator.onLine);
+    window.addEventListener('online', update);
+    window.addEventListener('offline', update);
+    return () => { window.removeEventListener('online', update); window.removeEventListener('offline', update); };
+  }, []);
+  return online;
+}
+
 export function AppShell({ children, headingRef }: { children: ReactNode; headingRef: RefObject<HTMLHeadingElement | null> }) {
   const navigate = useNavigate();
   const { theme, setTheme } = useForm();
+  const online = useOnlineStatus();
   const today = todayInTimeZone('Asia/Jerusalem');
   return (
     <div className="app-shell">
@@ -30,9 +43,11 @@ export function AppShell({ children, headingRef }: { children: ReactNode; headin
       </nav>
       <main id="content" className="main-content" tabIndex={-1}>
         <div className="topbar topbar-mobile-only">
+          {!online ? <span className="pill warn" role="status">לא מחובר — נשמר מקומית</span> : null}
           <button className="icon-button" type="button" aria-label="החלפת ערכת צבעים" onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}>{theme === 'dark' ? '☀' : '☾'}</button>
           <h1 className="brand">FORM<small>.</small></h1>
         </div>
+        {!online ? <div className="notice warn offline-notice" role="status">אין חיבור כרגע. ניתן להמשיך לרשום; הנתונים נשארים במכשיר.</div> : null}
         {children}
       </main>
       <nav className="mobile-nav" aria-label="ניווט תחתון">
