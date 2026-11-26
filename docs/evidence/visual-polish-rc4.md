@@ -54,3 +54,7 @@ Full-resolution screenshots were inspected directly, including mobile Today, Pro
 - No persistence schema migration or data-model rewrite.
 - Missing nutrient values remain unknown in domain data; UI labels only clarify known subtotals.
 - Physical-device acceptance is not claimed.
+
+## Final reproducibility check
+
+A clean clone restored from the RC4 source bundle at implementation commit `4f0d0c6` completed `pnpm install --frozen-lockfile && pnpm run ci` with exit 0. The resulting production build fingerprint matched the local build assets and service-worker cache token `form-shell-build-7716d34edd0c`.
