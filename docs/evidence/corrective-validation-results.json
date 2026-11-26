@@ -1,0 +1,52 @@
+{
+  "environment": "Chromium production build, real IndexedDB, application workflows",
+  "checks": {
+    "f01ActiveAdjustmentBranch": {
+      "status": "PASS",
+      "observed": "דלג לתוכן\nFORM.\nPERSONAL BODY INTELLIGENCE\n⌂\nהיום\n☕\nתזונה\n↗\nהתקדמות\n✦\nהמלצות\n⚙\nהגדרות\n✓\nצ׳ק-אין\nערכת צבעים בהירה\nנשמר מקומית במכשיר · אין סנכרון ענן ב־P0\n\nFORM / COACH\n\nסקירה והמלצות\n\nסקירה דטרמיניסטית ושקופה. אין שינוי אוטומטי ביעדים.\n\nניתן לשקול התאמה קטנה לאחר בדיקת הנתונים\nלבדיקה\n\nגרסת מדיניות form-coach-v1.0 · נכון ל־2026-11-26\n\nנמצאה תקיעות עם כיסוי נתונים מספק\nשמירת סקירה בהיסטוריה\nתצוגת שי"
+    },
+    "f01PausedGoalSafetyOverride": {
+      "status": "PASS"
+    },
+    "f05UnknownCalorieUpperBound": {
+      "status": "PASS",
+      "ringLabel": "נותרו לכל היותר 2,000 קלוריות מתוך יעד 2,000; הערכה חלקית",
+      "timezoneObserved": "Asia/Jerusalem"
+    },
+    "f06MissingDateGapSegments": {
+      "status": "PASS",
+      "lines": 1,
+      "points": 3
+    },
+    "f02BrowserHistoricalPlanGuard": {
+      "status": "PASS",
+      "errors": [
+        "historical-plan-revision",
+        "invalid-checkin"
+      ]
+    },
+    "f03BrowserRuntimeValidation": {
+      "status": "PASS",
+      "errors": [
+        "historical-plan-revision",
+        "invalid-checkin"
+      ]
+    },
+    "f07ConfiguredTimezoneUiDate": {
+      "status": "PASS",
+      "expected": "2026-11-25",
+      "displayedDate": "2026-11-25"
+    },
+    "f08BrowserPreImportBackup": {
+      "status": "PASS",
+      "backupEntries": 22,
+      "currentEntries": 0,
+      "restoreControl": true
+    },
+    "f04BrowserAtomicFailure": {
+      "status": "PASS",
+      "checkin": false,
+      "measurementCount": 0
+    }
+  }
+}

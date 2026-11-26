@@ -7,7 +7,7 @@
       "initialSw": {
         "controller": true,
         "caches": [
-          "form-shell-build-e170cfdd3030"
+          "form-shell-build-707cb94dc352"
         ],
         "version": 10
       }
@@ -16,13 +16,13 @@
       "status": "PASS",
       "offlineRendered": true,
       "offlineStatus": 200,
-      "offlineBodyStart": "דלג לתוכן\n☀\nFORM.\n\nFORM / TODAY\n\nתמונת המצב שלך\n\nיום אחד בכל פעם. נתונים בחורים, החלטות בחירות, והכל מתועד.\n\n‹\nתאריך נבחר\n›\nקלוריות שנותרו\n◌\n1,703 קל׳\nעל בסיס י",
+      "offlineBodyStart": "דלג לתוכן\nFORM.\n☀\n\nFORM / TODAY\n\nתמונת המצב שלך\n\nיום אחד בכל פעם. נתונים בחורים, החלטות בחירות, והכל מתועד.\n\n‹\nתאריך נבחר\n›\nקלוריות ומאקרו\nיום חלקי\nחלבון\n55.8 /",
       "entries": 2
     },
     "upgradeActivationCacheTransition": {
       "status": "PASS",
       "beforeCaches": [
-        "form-shell-build-e170cfdd3030"
+        "form-shell-build-707cb94dc352"
       ],
       "afterCaches": [
         "form-shell-build-upgradev2"

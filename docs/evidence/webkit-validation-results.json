@@ -21,7 +21,7 @@
       "api": true,
       "controller": true,
       "caches": [
-        "form-shell-v1"
+        "form-shell-build-707cb94dc352"
       ]
     },
     "mobileViewport390": {

@@ -1,9 +1,9 @@
-# FORM release-readiness report — RC3 authoritative
+# FORM release-readiness report — RC4 corrective authoritative
 
 Date: 2026-11-26  
-Implementation and validation commit: `630b983`  
-Baseline preserved from validated RC2 commit: `9b947ad`  
-Authoritative status: this file supersedes conflicting stale readiness claims. Older reports remain archival evidence only.
+Corrective implementation commit: `a1c4843e6e53c0d4f62ad57d35e4db2c7061b837` (`a1c4843`)  
+Baseline implementation/evidence: `4f0d0c6` / `c3f0758`  
+Authoritative status: this file supersedes conflicting stale readiness claims. Older RC2/RC3/RC4-visual sections remain archival evidence only; the corrective-patch addendum is the current gate summary.
 
 ## Verdict
 
@@ -86,3 +86,14 @@ M4+, cloud sync/auth, external food providers, barcode scanning, native integrat
 RC4 performed a focused visual/product-design refinement without architectural rewrite, feature expansion, new dependencies, persistence changes, cloud scope, or deployment. Detailed evidence and exact validation results are in `docs/evidence/visual-polish-rc4.md`.
 
 Post-polish local automated gates that were rerun: full `pnpm run ci` PASS (lint, strict typecheck, tests, production build); production visual matrix capture PASS (48 exact-width screenshots); realistic-state capture PASS; axe PASS with 0 violations on six core routes; dialog focus/keyboard/target/reflow/zoom/reduced-motion automated checks PASS subject to documented emulation limitations; UX workflow timing smoke PASS/MEASURED. Screen reader and physical iPhone acceptance remain NOT RUN and owner-dependent. A clean clone restored from the RC4 source bundle completed frozen installation and full CI with exit 0. This addendum does not convert the prior physical-device NO-GO into device acceptance.
+
+
+## RC4 corrective-patch addendum — 2026-11-26
+
+Corrective implementation commit: `a1c4843e6e53c0d4f62ad57d35e4db2c7061b837` (`a1c4843`). Baseline implementation was `4f0d0c6`; baseline evidence/source HEAD was `c3f0758`.
+
+The independent-audit findings F01–F09 were reproduced or explicitly scoped as documented in `docs/evidence/defect-resolution-rc4-corrective.md`. The patch preserved the RC4 architecture, visual design, feature scope, dependency graph and deferred milestones. It corrected coaching safety integration, historical plan revision control, runtime write validation, atomic check-in persistence, unknown-calorie semantics, calendar-accurate chart geometry, configured-timezone propagation, durable pre-import backup retention, navigation response caching and install-time compiled-asset precaching.
+
+Corrective local automated gates at the exact production service-worker build `form-shell-build-707cb94dc352`: full `pnpm run ci` PASS (lint, strict typecheck, 56 tests, coverage thresholds, production build); domain branches 92.41% overall with coach 93.33%, nutrition 90%, plan 91.3%, analytics 94.54%, dates 95.65%; production dependency audit PASS; corrective Chromium application validation 9/9 PASS; durability validation PASS except quota BLOCKED and future-schema NOT APPLICABLE; WebKit/WPE golden slice and offline write/reload PASS; automated accessibility regression PASS except screen reader NOT RUN. Exact evidence files are `corrective-validation-results.json`, `durability-validation-results.json`, `webkit-validation-results.json` and `accessibility-corrective-results.json`.
+
+This addendum does not close physical iPhone/Safari acceptance, VoiceOver/manual assistive-technology review, actual trusted HTTPS deployment, or unemulated storage-quota/durability acceptance. They remain owner-dependent open gates. No production approval or independent certification is claimed.

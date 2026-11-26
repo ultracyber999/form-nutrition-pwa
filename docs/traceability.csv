@@ -24,3 +24,12 @@ HEALTH-02,settings;checkin,M8,QA-21,DEFERRED / intentionally hidden in P0
 NOTIF-01,settings,M7-M8,QA-17,DEFERRED / intentionally hidden in P0
 AI-01,future,M9,separate-review,DEFERRED / intentionally hidden in P0
 SaaS-01,future,M9,separate-review,DEFERRED / intentionally hidden in P0
+F01,coach,RC4-corrective,external-static-review;corrective-browser-validation,IMPLEMENTED / paused goals wired to safety review; major activity shifts block reduction; physical device open
+F02,settings;coach;repository,RC4-corrective,external-static-review;repository-test;corrective-browser-validation,IMPLEMENTED / ordinary historical revisions rejected; explicit audited correction workflow; same-date conflict explicit
+F03,repository;import-export,RC4-corrective,external-static-review;repository-test;corrective-browser-validation,IMPLEMENTED / shared Zod contracts enforced before writes and export bundles schema-validated
+F04,checkin;repository,RC4-corrective,external-static-review;failure-injection-test;corrective-browser-validation,IMPLEMENTED / check-in measurements and outbox persist atomically; interruption rollback verified
+F05,today;nutrition;settings,RC4-corrective,external-static-review;corrective-browser-validation,IMPLEMENTED / unknown calories shown as partial/upper bound and CSV marks known subtotal with plus suffix
+F06,progress,RC4-corrective,external-static-review;trend-geometry-test;corrective-browser-validation,IMPLEMENTED / calendar-spaced chart preserves missing-date gaps and table alternative
+F07,app-shell;screens;repository,RC4-corrective,external-static-review;dates-test;corrective-browser-validation,IMPLEMENTED / configured profile timezone drives UI dates and repository defaults; midnight/DST covered
+F08,settings;repository,RC4-corrective,external-static-review;repository-test;corrective-browser-validation,IMPLEMENTED / durable local pre-import backup stored before replacement with restore control
+F09,app-shell;service-worker,RC4-corrective,external-static-review;durability-validation,IMPLEMENTED / non-OK navigations not cached; compiled assets precached; mixed-version/failed-update regression PASS

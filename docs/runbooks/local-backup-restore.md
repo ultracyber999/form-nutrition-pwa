@@ -18,3 +18,9 @@
 ## Failure handling
 
 Invalid JSON/schema or an over-limit file must make no mutation. If a transaction fails after confirmation, use the pre-import export captured by the application flow. IndexedDB eviction, browser profile deletion or device loss can destroy local-only data; recurring export is required until opt-in sync exists.
+
+## Durable pre-import backup (RC4 corrective patch)
+
+Before any `replace-all` import transaction mutates entity tables, the repository stores the complete pre-import export under the local metadata key `last-pre-import-backup` inside the same transaction. This backup therefore exists even if the post-import browser download fails or is interrupted. Settings exposes **שחזור גיבוי זה** for restoring that latest local pre-import backup.
+
+This is an additional recovery layer, not a substitute for user-exported backups. IndexedDB itself may still be evicted by the browser; export a JSON file before upgrades, imports, browser-profile changes or device migration.
