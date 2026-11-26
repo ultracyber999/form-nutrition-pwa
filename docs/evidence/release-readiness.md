@@ -20,6 +20,7 @@ This distinction is deliberate. The locally actionable engineering gates are now
 - Chromium: local `/home/ubuntu/.local/bin/google-chrome`, production static server, real browser IndexedDB persistent profiles.
 - WebKit: Playwright WebKit/WPE 26.0 on Linux. This is WebKit-engine validation only, **not** Safari, iOS Simulator, or physical iPhone; `pointer: coarse` was false in RC2 WebKit validation.
 - No cloud service, public deployment, external food provider, health-data access, paid infrastructure, secrets, or real personal data used.
+- Independent child-session verification was unavailable because organization child-session creation returned `out_of_quota`; final review therefore used reproducible local validation passes, browser automation, and clean-clone verification rather than claiming independent certification.
 
 ## Release-gate matrix
 
