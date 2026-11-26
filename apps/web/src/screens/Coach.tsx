@@ -87,7 +87,7 @@ export function CoachScreen() {
     <div className="stack-lg">
       <PageHeader kicker="FORM / COACH" title="סקירה והמלצות" subtitle="סקירה דטרמיניסטית ושקופה. אין שינוי אוטומטי ביעדים." />
       <Card className={`status-panel ${tone}`}>
-        <div className="split"><h2>{statusText[result.status]}</h2><span className={`pill ${tone === 'danger' ? 'danger' : tone === 'warn' ? 'warn' : 'good'}`}>{result.status}</span></div>
+        <div className="split"><h2>{statusText[result.status]}</h2><span className={`pill ${tone === 'danger' ? 'danger' : tone === 'warn' ? 'warn' : 'good'}`}>{tone === 'danger' ? 'דורש תשומת לב' : tone === 'warn' ? 'לבדיקה' : 'מסלול יציב'}</span></div>
         <p>גרסת מדיניות <bdi className="num">{result.policyVersion}</bdi> · נכון ל־<bdi className="num">{result.evidence.asOfDate}</bdi></p>
         {stale ? <p className="notice warn">הנתונים השתנו מאז הסקירה השמורה האחרונה. הסקירה הישנה נשמרת לביקורת ואינה נמחקת.</p> : null}
         <ul className="reason-list">{result.reasonCodes.map((code) => <li key={code}>{reasonText[code] ?? code}</li>)}</ul>
@@ -95,7 +95,7 @@ export function CoachScreen() {
       </Card>
       <Card>
         <h2>חלונות ראיות</h2>
-        <div className="table-wrap"><table><thead><tr><th>שבוע</th><th>שקילות</th><th>יומן מלא</th><th>ממוצע משקל</th><th>ממוצע קל׳</th><th>צעדים</th></tr></thead><tbody>{result.evidence.windows.map((window) => <tr key={window.index}><td>{window.index === 0 ? 'נוכחי' : window.index === 1 ? 'קודם' : 'לפני כן'}<br /><small>{window.startDate}–{window.endDate}</small></td><td>{window.weightDays}/7</td><td>{window.completeFoodDays}/7</td><td><bdi className="num">{fmt(window.weightMeanKg, 2)}</bdi></td><td><bdi className="num">{fmt(window.intakeMeanKcal)}</bdi></td><td>{window.stepDays}/7</td></tr>)}</tbody></table></div>
+        <div className="table-wrap evidence-table"><table><thead><tr><th>שבוע</th><th>שקילות</th><th>יומן מלא</th><th>ממוצע משקל</th><th>ממוצע קל׳</th><th>צעדים</th></tr></thead><tbody>{result.evidence.windows.map((window) => <tr key={window.index}><td>{window.index === 0 ? 'נוכחי' : window.index === 1 ? 'קודם' : 'לפני כן'}<br /><small>{window.startDate}–{window.endDate}</small></td><td>{window.weightDays}/7</td><td>{window.completeFoodDays}/7</td><td><bdi className="num">{fmt(window.weightMeanKg, 2)}</bdi></td><td><bdi className="num">{fmt(window.intakeMeanKcal)}</bdi></td><td>{window.stepDays}/7</td></tr>)}</tbody></table></div>
         <p className="card-muted">שינוי אחרון: <bdi className="num">{fmt(result.evidence.deltas.recentKg, 2)} ק״ג</bdi> · שינוי קודם: <bdi className="num">{fmt(result.evidence.deltas.priorKg, 2)} ק״ג</bdi></p>
       </Card>
       {confirming && activePlan ? (

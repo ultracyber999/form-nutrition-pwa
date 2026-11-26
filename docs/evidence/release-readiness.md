@@ -80,3 +80,9 @@ The RC3 defect register is `docs/evidence/defect-register-rc3.md`. Fixed defects
 ## Remaining deferred scope
 
 M4+, cloud sync/auth, external food providers, barcode scanning, native integrations, health-data import, notifications, AI features, SaaS features, public deployment, and real personal-data migration remain deferred and intentionally hidden/inactive in P0.
+
+## RC4 visual-polish addendum — 2026-11-26
+
+RC4 performed a focused visual/product-design refinement without architectural rewrite, feature expansion, new dependencies, persistence changes, cloud scope, or deployment. Detailed evidence and exact validation results are in `docs/evidence/visual-polish-rc4.md`.
+
+Post-polish local automated gates that were rerun: full `pnpm run ci` PASS (lint, strict typecheck, tests, production build); production visual matrix capture PASS (48 exact-width screenshots); realistic-state capture PASS; axe PASS with 0 violations on six core routes; dialog focus/keyboard/target/reflow/zoom/reduced-motion automated checks PASS subject to documented emulation limitations; UX workflow timing smoke PASS/MEASURED. Screen reader and physical iPhone acceptance remain NOT RUN and owner-dependent. This addendum does not convert the prior physical-device NO-GO into device acceptance.

@@ -43,9 +43,9 @@ export function AppShell({ children, headingRef }: { children: ReactNode; headin
       </nav>
       <main id="content" className="main-content" tabIndex={-1}>
         <div className="topbar topbar-mobile-only">
+          <h1 className="brand">FORM<small>.</small></h1>
           {!online ? <span className="pill warn" role="status">לא מחובר — נשמר מקומית</span> : null}
           <button className="icon-button" type="button" aria-label="החלפת ערכת צבעים" onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}>{theme === 'dark' ? '☀' : '☾'}</button>
-          <h1 className="brand">FORM<small>.</small></h1>
         </div>
         {!online ? <div className="notice warn offline-notice" role="status">אין חיבור כרגע. ניתן להמשיך לרשום; הנתונים נשארים במכשיר.</div> : null}
         {children}

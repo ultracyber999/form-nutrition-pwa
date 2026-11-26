@@ -2,13 +2,13 @@
   "environment": "Chromium production build, automated lower-bound timing; fills are machine-speed and not human completion claims",
   "workflows": {
     "morningWeight": {
-      "seconds": 0.29,
+      "seconds": 0.27,
       "interactions": 3,
       "targetSeconds": 10,
       "status": "MEASURED"
     },
     "recentFoodDefaultQuantity": {
-      "seconds": 0.29,
+      "seconds": 0.27,
       "interactions": 3,
       "targetSeconds": 10,
       "status": "MEASURED",
@@ -18,13 +18,13 @@
       "status": "PASS"
     },
     "unfamiliarManualFood": {
-      "seconds": 0.56,
+      "seconds": 0.61,
       "interactions": 6,
       "targetSeconds": 30,
       "status": "MEASURED"
     },
     "completeDailyCheckin": {
-      "seconds": 0.22,
+      "seconds": 0.39,
       "interactions": 9,
       "targetSeconds": 45,
       "status": "MEASURED"

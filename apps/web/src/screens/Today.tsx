@@ -40,34 +40,34 @@ export function TodayScreen() {
     <div className="stack-lg">
       <PageHeader kicker="FORM / TODAY" title="תמונת המצב שלך" subtitle="יום אחד בכל פעם. נתונים בחורים, החלטות בחירות, והכל מתועד." />
       <DateNavigator date={date} onChange={(next) => { setDate(next); }} />
-      <div className="grid grid-4">
-        <MetricTile label="קלוריות שנותרו" value={plan ? plan.kcal - totals.totals.kcal : null} unit="קל׳" context={totals.unknownCounts.kcal ? 'על בסיס יומן חלקי' : 'על בסיס יומן מתועד'} icon="◌" />
-        <MetricTile label="חלבון שנצרך" value={totals.totals.proteinG} digits={1} unit="ג׳" context={plan ? `יעד ${fmt(plan.proteinG)} ג׳` : 'אין תכנית פעילה'} icon="●" />
-        <MetricTile label="משקל אחרון" value={latestWeight?.valueKg ?? null} digits={1} unit="ק״ג" context={latestWeight ? `מדידה ${latestWeight.localDate}` : 'אין עדיין מדידות משקל'} icon="▣" />
-        <MetricTile label="משקל יעד" value={goal?.targetKg ?? null} digits={1} unit="ק״ג" context="יעד תכנית, לא מדידה" icon="◎" />
-      </div>
-      <div className="desktop-two">
+      <div className="desktop-two today-hero-grid">
         <Card className="hero-card">
           <div className="split"><h2>קלוריות ומאקרו</h2><span className={`pill ${completion === 'complete' ? 'good' : completion === 'partial' ? 'warn' : ''}`}>{completion === 'complete' ? 'יום שלם' : completion === 'partial' ? 'יום חלקי' : 'אין רישום'}</span></div>
           {plan ? (
             <div className="budget-layout">
               <div className="macro-list">
-                <MacroBar label="חלבון" consumed={totals.totals.proteinG} target={plan.proteinG} className="protein" />
-                <MacroBar label="פחמימות" consumed={totals.totals.carbG} target={plan.carbG} className="carb" />
-                <MacroBar label="שומן" consumed={totals.totals.fatG} target={plan.fatG} className="fat" />
-                <MacroBar label="סיבים" consumed={totals.totals.fiberG} target={plan.fiberG} className="fiber" />
+                <MacroBar label="חלבון" consumed={totals.totals.proteinG} target={plan.proteinG} className="protein" incomplete={totals.unknownCounts.proteinG > 0} />
+                <MacroBar label="פחמימות" consumed={totals.totals.carbG} target={plan.carbG} className="carb" incomplete={totals.unknownCounts.carbG > 0} />
+                <MacroBar label="שומן" consumed={totals.totals.fatG} target={plan.fatG} className="fat" incomplete={totals.unknownCounts.fatG > 0} />
+                <MacroBar label="סיבים" consumed={totals.totals.fiberG} target={plan.fiberG} className="fiber" incomplete={totals.unknownCounts.fiberG > 0} />
               </div>
               <CalorieRing consumed={totals.totals.kcal} target={plan.kcal} incomplete={totals.unknownCounts.kcal > 0} />
             </div>
           ) : <EmptyState title="לא נמצאה תכנית פעילה לתאריך זה" />}
           {totals.unknownCounts.kcal || totals.unknownCounts.proteinG || totals.unknownCounts.carbG || totals.unknownCounts.fatG || totals.unknownCounts.fiberG ? <p className="notice warn">חלק מהערכים אינם ידועים. מוצג סיכום חלקי, לא אפס מומצא.</p> : null}
-          <div className="split" style={{ marginBlockStart: 14 }}><span className="card-muted">נצרכו <bdi className="num">{fmt(totals.totals.kcal)} קל׳</bdi></span><div className="button-row"><Link className="secondary-button" to={`/check-in/${date}`}>צ׳ק-אין</Link><Link className="primary-button" to={`/nutrition/${date}?add=1`}>+ הוספת אוכל</Link></div></div>
+          <div className="split" style={{ marginBlockStart: 14 }}><span className="card-muted">נצרכו <bdi className="num">{fmt(totals.totals.kcal)} קל׳</bdi></span><div className="button-row hero-actions"><Link className="primary-button" to={`/nutrition/${date}?add=1`}>+ הוספת אוכל</Link><Link className="secondary-button" to={`/check-in/${date}`}>צ׳ק-אין</Link></div></div>
         </Card>
-        <Card>
+        <Card className="weight-card">
           <div className="split"><h2>מגמת משקל</h2><span className="pill">7 ימים</span></div>
           <TrendChart points={weekWeights} unit="ק״ג" label="משקל" />
           <Link className="secondary-button" to="/progress">כל ההתקדמות</Link>
         </Card>
+      </div>
+      <div className="grid grid-4">
+        <MetricTile label="חלבון שנצרך" value={totals.totals.proteinG} digits={1} unit="ג׳" context={plan ? `יעד ${fmt(plan.proteinG)} ג׳` : 'אין תכנית פעילה'} icon="●" />
+        <MetricTile label="משקל אחרון" value={latestWeight?.valueKg ?? null} digits={1} unit="ק״ג" context={latestWeight ? `מדידה ${latestWeight.localDate}` : 'אין עדיין מדידות משקל'} icon="▣" />
+        <MetricTile label="משקל יעד" value={goal?.targetKg ?? null} digits={1} unit="ק״ג" context="יעד תכנית, לא מדידה" icon="◎" />
+        <MetricTile label="צעדים היום" value={checkin?.steps ?? null} unit="" context={checkin ? 'מתוך צ׳ק-אין יומי' : 'עדיין לא נרשם צ׳ק-אין'} icon="⌁" />
       </div>
       <div className="desktop-three">
         <Card>

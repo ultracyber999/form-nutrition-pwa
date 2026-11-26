@@ -2,7 +2,7 @@
 import fs from 'node:fs';
 import { createRequire } from 'node:module';
 const { chromium } = createRequire(new URL('../apps/web/package.json', import.meta.url))('playwright');
-const routes=[['today','/today'],['nutrition','/nutrition/2026-11-25'],['checkin','/check-in/2026-11-25'],['progress','/progress'],['coach','/coach'],['settings','/settings']];
+const routes=[['today','/today'],['nutrition','/nutrition/2026-11-26'],['checkin','/check-in/2026-11-26'],['progress','/progress'],['coach','/coach'],['settings','/settings']];
 const widths=[320,390,768,1440], themes=['dark','light'];
 const browser=await chromium.launch({executablePath:'/home/ubuntu/.local/bin/google-chrome',headless:true});
 const context=await browser.newContext();
@@ -14,7 +14,12 @@ if (await page.evaluate(() => Boolean(window.formTest))) {
     await window.formTest.ensureBase();
     const foods = await window.formTest.repo.searchFoods('עוף');
     if (foods[0] && (await window.formTest.repo.listFoodEntries()).length === 0) {
-      await window.formTest.repo.addFoodEntry({ localDate: '2026-11-25', mealType: 'lunch', foodVersionId: foods[0].id, quantity: 180, unit: 'g' });
+      await window.formTest.repo.addFoodEntry({ localDate: '2026-11-26', mealType: 'lunch', foodVersionId: foods[0].id, quantity: 180, unit: 'g' });
+      for (let day = 0; day < 7; day += 1) {
+        const date = new Date(Date.UTC(2026, 10, 20 + day)).toISOString().slice(0, 10);
+        await window.formTest.repo.saveMeasurement({ type: 'weight', value: 91.8 - day * 0.18, unit: 'kg', measuredAt: `${date}T06:30:00+02:00`, localDate: date, source: 'manual', externalSampleId: null });
+      }
+      await window.formTest.repo.saveCheckin({ localDate: '2026-11-26', steps: 6840, waterMl: 1800, sleepMinutes: 444, trainingStatus: 'strength', hunger1to5: 2, energy1to5: 4, notes: null });
     }
   });
 }

@@ -37,12 +37,12 @@ export function MetricTile({ label, value, unit, context, icon, digits = 0 }: { 
   );
 }
 
-export function MacroBar({ label, consumed, target, className, unit = 'ג׳' }: { label: string; consumed: number; target: number | null; className: string; unit?: string }) {
+export function MacroBar({ label, consumed, target, className, unit = 'ג׳', incomplete = false }: { label: string; consumed: number; target: number | null; className: string; unit?: string; incomplete?: boolean }) {
   const ratio = target && target > 0 ? consumed / target : 0;
   return (
     <div className="macro-row">
-      <header><span>{label}</span><bdi className="num">{fmt(consumed, 1)} / {target === null ? '—' : fmt(target)} {unit}</bdi></header>
-      <div className="progress-track" role="img" aria-label={`סיכום ${label}: ${fmt(consumed, 1)} מתוך ${target === null ? 'לא ידוע' : fmt(target)} גרם`}>
+      <header><span>{label}</span><bdi className="num">{fmt(consumed, 1)}{incomplete ? '+' : ''} / {target === null ? '—' : fmt(target)} {unit}</bdi></header>
+      <div className="progress-track" role="img" aria-label={`סיכום ${label}: ${fmt(consumed, 1)}${incomplete ? ' לפחות' : ''} מתוך ${target === null ? 'לא ידוע' : fmt(target)} גרם`}>
         <div className={`progress-fill ${className}`} style={{ inlineSize: `${Math.min(100, ratio * 100)}%` }} />
       </div>
     </div>
@@ -55,12 +55,12 @@ export function CalorieRing({ consumed, target, incomplete }: { consumed: number
   const radius = 54;
   const circumference = 2 * Math.PI * radius;
   return (
-    <div className="ring-wrap" role="img" aria-label={`נותרו ${fmt(remaining)} קלוריות מתוך יעד ${fmt(target)}`}>
+    <div className="ring-wrap" role="img" aria-label={remaining < 0 ? `חריגה של ${fmt(Math.abs(remaining))} קלוריות מעל יעד ${fmt(target)}` : `נותרו ${fmt(remaining)} קלוריות מתוך יעד ${fmt(target)}`}>
       <svg viewBox="0 0 132 132" aria-hidden>
-        <circle cx="66" cy="66" r={radius} fill="none" stroke="var(--elevated)" strokeWidth="12" />
-        <circle cx="66" cy="66" r={radius} fill="none" stroke="var(--accent)" strokeWidth="12" strokeLinecap="round" strokeDasharray={circumference} strokeDashoffset={circumference * (1 - Math.min(1, ratio))} />
+        <circle cx="66" cy="66" r={radius} fill="none" stroke="var(--ring-track)" strokeWidth="11" />
+        <circle className="ring-progress" cx="66" cy="66" r={radius} fill="none" stroke={remaining < 0 ? 'var(--warning)' : 'var(--accent)'} strokeWidth="11" strokeLinecap="round" strokeDasharray={circumference} strokeDashoffset={circumference * (1 - Math.min(1, ratio))} />
       </svg>
-      <div className="ring-center"><strong className="num">{fmt(remaining)}</strong><small>{remaining < 0 ? 'מעל היעד לפי הרישום' : incomplete ? 'נותרו · הערכה חלקית' : 'נותרו לפי הרישום'}</small><small className="num">מתוך {fmt(target)} קל׳</small></div>
+      <div className="ring-center"><small className="ring-kicker">{remaining < 0 ? 'חריגה' : 'נותרו'}</small><strong className="num">{fmt(Math.abs(remaining))}</strong><small>{remaining < 0 ? 'קל׳ מעל היעד' : incomplete ? 'קל׳ · הערכה חלקית' : 'קל׳ לפי הרישום'}</small><small className="ring-target num">נצרכו {fmt(consumed)} מתוך {fmt(target)}</small></div>
     </div>
   );
 }

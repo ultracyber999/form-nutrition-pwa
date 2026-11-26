@@ -1,0 +1,41 @@
+{
+  "environment": "Chromium production build, automated lower-bound timing; fills are machine-speed and not human completion claims",
+  "workflows": {
+    "morningWeight": {
+      "seconds": 0.27,
+      "interactions": 3,
+      "targetSeconds": 10,
+      "status": "MEASURED"
+    },
+    "recentFoodDefaultQuantity": {
+      "seconds": 0.27,
+      "interactions": 3,
+      "targetSeconds": 10,
+      "status": "MEASURED",
+      "note": "quantity edit adds one interaction when 100g default is not desired"
+    },
+    "recentPanelPreselection": {
+      "status": "PASS"
+    },
+    "unfamiliarManualFood": {
+      "seconds": 0.61,
+      "interactions": 6,
+      "targetSeconds": 30,
+      "status": "MEASURED"
+    },
+    "completeDailyCheckin": {
+      "seconds": 0.39,
+      "interactions": 9,
+      "targetSeconds": 45,
+      "status": "MEASURED"
+    },
+    "offlineStatusCommunication": {
+      "status": "PASS"
+    }
+  },
+  "observations": [
+    "Check-in is now reachable from the first Today hero action row rather than only lower-page/mobile-nav-indirect navigation.",
+    "Quick-add prioritizes recent foods when the search box is empty and honors recent-panel preselection.",
+    "Dialog result lists are height-capped and independently scrollable so quantity controls and submit actions remain reachable on small screens."
+  ]
+}
