@@ -292,22 +292,22 @@ export const archiveSegmentSchema = z.object({
   partial_reps_unknown: z.boolean(),
   excluded_partial_reps_count: z.number().nonnegative().nullable(),
   failure: z.boolean(),
-  independentCalculation: z.object({issues:z.array(z.string().max(100)).max(30)}).passthrough()
-}).passthrough();
+  independentCalculation: z.object({issues:z.array(z.string().max(100)).max(30)}).loose()
+}).loose();
 export const archiveExerciseSchema = z.object({
   id:uuidSchema, nameHe:z.string().min(1).max(200), nameEn:z.string().min(1).max(200),
   equipment:z.string().max(200), configuration:z.string().max(500).nullable(),
-  sets:z.array(z.object({id:uuidSchema, kind:z.enum(['working','drop','backoff','superset','warmup']),segments:z.array(archiveSegmentSchema).min(1).max(20)}).passthrough()).min(1).max(100)
-}).passthrough();
+  sets:z.array(z.object({id:uuidSchema, kind:z.enum(['working','drop','backoff','superset','warmup']),segments:z.array(archiveSegmentSchema).min(1).max(20)}).loose()).min(1).max(100)
+}).loose();
 export const archiveSessionSchema = z.object({
   id:uuidSchema,localDate:isoDateSchema,title:z.string().min(1).max(200),
   phase:z.enum(['neutral','pre-cut','cut','maintenance','other']),
   exercises:z.array(archiveExerciseSchema).min(1).max(60)
-}).passthrough();
+}).loose();
 export const historyArchiveSchema = z.object({
  format:z.literal('nivne-history-archive'),schemaVersion:z.literal(1),
  sessions:z.array(archiveSessionSchema).max(3000)
-}).passthrough().superRefine((archive,ctx)=>{
+}).loose().superRefine((archive,ctx)=>{
  const ids=new Set<string>();
  const dates=new Set<string>();
  const add=(id:string)=>{if(ids.has(id))ctx.addIssue({code:'custom',message:'duplicate archive ID'});ids.add(id);};
