@@ -1,51 +1,81 @@
-# FORM release-readiness report
+# FORM release-readiness report — RC3 authoritative
 
-Date: 2026-11-25  
-Implementation commit: `9b947ad`; evidence commit: `9b947ad` plus the following documentation-only update.
+Date: 2026-11-26  
+Implementation and validation commit: `630b983`  
+Baseline preserved from validated RC2 commit: `9b947ad`  
+Authoritative status: this file supersedes conflicting stale readiness claims. Older reports remain archival evidence only.
 
 ## Verdict
 
-**NO-GO for production release.** The application is a functional local-first implementation, not a mockup, and the core P0 workflows are implemented and locally verified. It is not release-ready because mandatory independent physical-device and complete accessibility gates remain open and critical-module coverage is below target.
+**PRIVATE-BETA ENGINEERING CANDIDATE: GO for owner-controlled local/private-device acceptance preparation.**  
+**UNRESTRICTED PRODUCTION RELEASE: NO-GO.**  
+**PHYSICAL DEVICE ACCEPTANCE: NOT RUN.**
 
-## Implemented and verified locally
+This distinction is deliberate. The locally actionable engineering gates are now strongly evidenced, including real-browser durability, real-browser scale benchmarks, accessibility automation, security headers, production build reproducibility, and visual regression evidence. FORM must not be claimed as physically accepted, independently certified, or production-deployed until the owner-dependent checks below are completed.
 
-- Strict pnpm TypeScript monorepo, design tokens, contracts, domain, IndexedDB repository, migration/import/export, Hebrew RTL app routes, deterministic coach, backups, offline PWA shell.
-- Golden vertical slice passed in automated tests and browser UI: 180 g cooked chicken = 297 kcal / 55.8 g protein, persisted/reloaded/exported/restored.
-- CI PASS: lint, strict typecheck, 39 tests, production build.
-- `pnpm audit --prod` PASS.
-- Offline production navigation PASS in Chromium CDP network emulation.
-- Dark/light screenshots at 390×844 and 1440×900 captured.
+## Exact validation environment
 
-## Partially implemented / needs hardening
+- OS: Ubuntu 22.04 Linux VM, headless browser automation.
+- Node: `v24.22.2`; pnpm: `12.16.1`.
+- Chromium: local `/home/ubuntu/.local/bin/google-chrome`, production static server, real browser IndexedDB persistent profiles.
+- WebKit: Playwright WebKit/WPE 26.0 on Linux. This is WebKit-engine validation only, **not** Safari, iOS Simulator, or physical iPhone; `pointer: coarse` was false in RC2 WebKit validation.
+- No cloud service, public deployment, external food provider, health-data access, paid infrastructure, secrets, or real personal data used.
 
-- Accessibility: semantic RTL/focus/dialog/table alternatives present, but no full WCAG/screen-reader/zoom audit.
-- Coverage: domain 74.65% statements, 79.55% branches, 60% functions; below 90% critical target.
-- Visual matrix: 320 and 768 widths missing.
-- Security headers: CSP meta present; server-level headers cannot be verified because no production host is authorized/deployed.
-- Recipes/templates functional but basic.
+## Release-gate matrix
 
-## Deferred by design in P0
+| Gate | Status | Exact evidence, command/artifact, and limitation |
+|---|---|---|
+| Frozen dependency install | PASS | Clean local clone of `630b983`: `pnpm install --frozen-lockfile && pnpm run ci` exit 0. |
+| Lint | PASS | `pnpm run ci` → `eslint .` exit 0 at `630b983`. |
+| Strict TypeScript | PASS | `pnpm run ci` → recursive `tsc --noEmit` exit 0 at `630b983`. |
+| Unit/property/integration tests | PASS | `pnpm run ci`: 49 tests passed across design/contracts/test-data/domain/data/web at `630b983`. |
+| Critical branch coverage | PASS | Domain v8 coverage: statements 97.92%, branches 92.96%; analytics branches 94.54%, coach 94.89%, dates 95.65%, nutrition 90.0%, plan 91.3%. |
+| Production build | PASS | `pnpm run ci` → Vite production build exit 0; bundle gzip: JS 174.86 kB, CSS 4.93 kB; service-worker cache `form-shell-build-e170cfdd3030`. |
+| Production dependency audit | PASS | `pnpm audit --prod` exit 0: no known vulnerabilities. |
+| Golden vertical slice | PASS | RC2 WebKit validation: 180 g cooked chicken → 297 kcal and 55.8 g protein, persistence/export/restore/completion invalidation; `webkit-validation-results.json`. RC3 browser benchmark revalidated create/edit/query at scale but did not repeat the exact screenshot-oriented golden slice. |
+| Chromium/WebKit production scale benchmark | PASS with limitations | `docs/evidence/browser-performance-results.json`; 365 days, 9,855 entries, real browser IndexedDB persistent profiles. Chromium cold 851.6ms, warm median 784.9ms; WebKit/WPE cold 879.2ms, warm median 764.8ms. Import replace-all: Chromium 1,749.9ms, WebKit/WPE 3,703ms. Navigation includes network-idle plus fixed 250ms settle; not pure navigation timing. |
+| Service-worker install/offline persistence | PASS | `docs/evidence/durability-validation-results.json`; install/controller/cache PASS and offline render/write/reload PASS in Chromium real IndexedDB. |
+| Upgrade/cache activation transition | PASS | Same artifact: content-hashed cache transition `form-shell-build-e170cfdd3030` → `form-shell-build-upgradev2`; old cache removed; logical equivalence true. |
+| Stale cached shell/update behavior | PASS | Same artifact: stale cached shell does not override update. |
+| Failed update installation recovery | PASS | Same artifact: broken service-worker deployment did not delete prior working cache/data. |
+| Concurrent tab data access | PASS | Same artifact: concurrent tab logical snapshot equivalence. |
+| Interrupted browser restart persistence | PASS | Same artifact. |
+| Backup/restore before/after upgrade | PASS | Same artifact; export/import logical equivalence and entries retained. |
+| Application rollback/schema compatibility | PASS at schema v1 | Same artifact; rollback to v1 build retained IndexedDB version 10 / Dexie schema v1. |
+| Database schema migrations beyond v1 | NOT APPLICABLE | No production v2 schema exists. Legacy import migration and failed-import rollback remain covered in repository tests. Do not claim untested future migration compatibility. |
+| Storage quota failure | BLOCKED | No deterministic supported browser automation for quota failure on this VM. Visible recovery/backup guidance is implemented, but quota behavior is not claimed tested. |
+| Offline UX communication | PASS | `ux-workflow-results.json`: offline status communication PASS. |
+| UX workflow efficiency | MEASURED / PASS for automation | `ux-workflow-results.json`: morning weight 3 interactions/0.29s machine lower bound; recent food 3/0.29s; unfamiliar manual food 6/0.56s; full check-in 9/0.22s. These are not human completion-time claims. |
+| Quick-add ergonomics refinement | PASS | Recent prioritization/preselection PASS; small-screen scrolling fix verified in UX and benchmark scripts. |
+| Visual matrix | PASS with self-review limitation | Final 48 exact-width screenshots at 320/390/768/1440 dark/light in `visual-matrix/`; contact sheet `visual-contact-sheets/rc3-final-contact-sheet.jpg`; inspected without horizontal overflow or obvious clipping. Not a physical-device screenshot matrix. |
+| axe accessibility | PASS | `accessibility-validation-results.json`: 0 violations on six core routes in production Chromium. |
+| Keyboard/focus interaction | PASS | Same artifact: dialog initial focus, focus trap, Escape restoration, 30/30 visible keyboard stops. |
+| Target size / reflow / zoom approximations | PASS with limitations | Same artifact: checked target sizes PASS, exact 320 CSS px reflow PASS, browser-approximated 200% text/zoom PASS. Not physical OS dynamic type. |
+| Reduced motion | PASS | Same artifact: computed duration `1e-05s`. |
+| Screen reader / VoiceOver | NOT RUN | No supported screen reader on Linux VM. Do not infer screen-reader compatibility from axe. Physical VoiceOver acceptance remains owner-dependent. |
+| Security headers/static deployment config | PASS locally | `scripts/serve-production.mjs`; curl-verified CSP, nosniff, no-referrer, restrictive permissions policy, COOP/CORP, HSTS guidance, no-cache shell/SW/manifest and immutable hashed assets. HTTPS termination itself not performed locally. |
+| Private-device preview preparation | PREPARED / NOT RUN on device | `docs/runbooks/private-device-preview.md` contains trusted HTTPS/stable-origin/iPhone workflow. No certificate provisioned and no physical device test performed. |
+| Public production deployment | NOT APPLICABLE / NOT PERFORMED | Explicitly unauthorized and not done. |
 
-Cloud auth/sync, RLS, external food providers, barcode scanning, real health-data access, native apps, notifications, AI insight generation and SaaS features. These controls are intentionally hidden, not placeholders.
+## Performance interpretation
 
-## Operational notes
+Real-browser scale results are strong enough for local engineering readiness: sub-second cold/warm workflow proxy loads at 9,855 entries, repository search/create/edit/query in milliseconds, and no observed long tasks in either browser engine. Full export/import is necessarily heavier because it serializes and validates the complete logical dataset: approximately 1.75s in Chromium and 3.70s in Linux WebKit/WPE for a 5.15MB export. This is evidence, not a guarantee of low-end physical iPhone performance.
 
-- No remote repository or public deployment exists; all work is in `/home/ubuntu/repos/form` on branch `main`.
-- Child-session delegation was attempted but organization quota returned `out_of_quota`; implementation proceeded directly.
-- Rollback for local data is export/restore using JSON backups. Application rollback is git commit reversal because there is no deployed service.
-- Do not commit or import real personal data. Bundled food entries are synthetic generic estimates.
+## Defects and recovery posture
 
-## P0 hardening update — 2026-11-26
+The RC3 defect register is `docs/evidence/defect-register-rc3.md`. Fixed defects include quick-add small-screen operability, recent-food prioritization/preselection, check-in reachability, offline-status communication, visible storage recovery guidance, static service-worker cache names, unsupported permissions-policy token, and two harness false failures. Open owner-dependent items are physical device acceptance and storage-quota verification.
 
-Hardening evidence in `hardening-report.md` supersedes the earlier coverage/performance gaps where explicitly stated. Critical branch coverage now passes per module; realistic-scale performance, clean-checkout reproducibility, automated axe checks, offline startup and offline write/reload persistence are documented there.
+## Owner-dependent acceptance actions
 
-WebKit/WPE engine validation now passes for the production build: the 180g chicken golden case, completion invalidation, check-in save, real offline shell/write/reload, zero axe violations on six routes, and an exact-pixel 48-viewport visual matrix at 320/390/768/1440 in dark/light. This validation also exposed and fixed real responsive defects: narrow-viewport horizontal overflow/clipping and desktop RTL sidebar placement. It remains Linux WebKit/WPE evidence, **not** Safari, iOS Simulator, or physical-iPhone certification; the harness reports `pointer:coarse=false`.
+1. Create a stable trusted HTTPS origin on a private network/host; do not use a changing hostname/port because IndexedDB and installed-PWA storage are origin-bound.
+2. Serve the final `form-production-dist.tar.gz` behind that HTTPS origin with the documented headers/cache policy.
+3. On the physical iPhone, trust the private certificate if required, open the exact origin in Safari, and Add to Home Screen.
+4. Execute the runbook first-launch/offline/relaunch checks using synthetic data.
+5. Export a backup before upgrade; deploy a changed build to the same origin; verify upgrade activation, data retention, and rollback using the runbook.
+6. Manually verify VoiceOver order/names, dynamic type/200% zoom, reduced motion, contrast in real lighting, touch target ergonomics, one-handed use, Hebrew/mixed-number reading, and safe-area behavior.
+7. Manually test browser storage/quota recovery or accept that risk explicitly; never clear site data before validating a backup restore.
+8. Only after those checks decide whether private daily use is accepted. Unrestricted production remains NO-GO without separate release authorization and review.
 
-Production acceptance remains **NO-GO** because physical iPhone/Safari or macOS/iOS Simulator validation, full manual assistive-technology/zoom validation, exhaustive service-worker upgrade testing and authorized deployment-header verification remain open. A macOS child validation session was requested but could not start because the organization quota returned `out_of_quota`.
+## Remaining deferred scope
 
-## Next gate before release
-
-1. Complete physical iPhone/Safari or macOS/iOS Simulator smoke including install, offline restart, touch targets, safe areas, keyboard behavior and VoiceOver.
-2. Complete manual screen-reader, zoom/reflow, text-scaling and exhaustive WCAG 2.2 AA audit.
-3. Exercise service-worker upgrade/stale-cache rollback matrix without local-data loss.
-4. Create authorized private remote repository/CI if desired and add hosting security headers before any deployment.
+M4+, cloud sync/auth, external food providers, barcode scanning, native integrations, health-data import, notifications, AI features, SaaS features, public deployment, and real personal-data migration remain deferred and intentionally hidden/inactive in P0.
