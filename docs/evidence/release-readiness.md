@@ -97,3 +97,13 @@ The independent-audit findings F01–F09 were reproduced or explicitly scoped as
 Corrective local automated gates at the exact production service-worker build `form-shell-build-707cb94dc352`: full `pnpm run ci` PASS (lint, strict typecheck, 56 tests, coverage thresholds, production build); domain branches 92.41% overall with coach 93.33%, nutrition 90%, plan 91.3%, analytics 94.54%, dates 95.65%; production dependency audit PASS; corrective Chromium application validation 9/9 PASS; durability validation PASS except quota BLOCKED and future-schema NOT APPLICABLE; WebKit/WPE golden slice and offline write/reload PASS; automated accessibility regression PASS for executable PASS/FAIL checks, with text-and-semantic INFO and screen reader NOT RUN. Exact evidence files are `corrective-validation-results.json`, `durability-validation-results.json`, `webkit-validation-results.json` and `accessibility-corrective-results.json`.
 
 This addendum does not close physical iPhone/Safari acceptance, VoiceOver/manual assistive-technology review, actual trusted HTTPS deployment, or unemulated storage-quota/durability acceptance. They remain owner-dependent open gates. No production approval or independent certification is claimed.
+
+## Deployment-preparation addendum — 2026-11-26
+
+Deployment implementation commit: `e5b4f2be9ba54c44e0e43f8b2a0df67258b72d4b` (`e5b4f2b`), built on frozen corrective implementation `a1c4843`. Exact validated production service-worker build: `form-shell-build-a495fd989d1f`.
+
+The three final-review verification points were resolved without a broad sprint: concerning symptoms are now connected through the real check-in workflow to coach safety override; continuously open Today rolls over at midnight including resume semantics; pre-import backup restoration was verified end-to-end through the visible Settings workflow. Detailed evidence is `docs/evidence/deployment-final-review.md`.
+
+Final local automated gates: full CI PASS (57 tests); production audit PASS; targeted deployment browser validation 3/3 PASS; Vercel configuration validation 6/6 PASS; WebKit/WPE golden slice and offline persistence PASS at the exact build; Chromium durability PASS except storage-quota BLOCKED and future-schema NOT APPLICABLE; executable accessibility regression PASS with screen reader NOT RUN.
+
+Private HTTPS deployment preparation is GO as an owner-action boundary. ChatGPT Sites is assessment-only and synthetic-demo conditional, not production-compatible evidence. Physical iPhone/Safari, VoiceOver/manual assistive technology, actual deployment, storage-quota behavior and personal daily-use acceptance remain OPEN. Unrestricted production remains NO-GO.

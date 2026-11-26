@@ -1,0 +1,43 @@
+{
+  "checks": {
+    "vercelBuildShape": {
+      "status": "PASS",
+      "installCommand": "corepack enable && corepack pnpm install --frozen-lockfile",
+      "buildCommand": "corepack pnpm --filter @form/web build",
+      "outputDirectory": "apps/web/dist"
+    },
+    "spaRewrite": {
+      "status": "PASS",
+      "rewrites": [
+        {
+          "source": "/(.*)",
+          "destination": "/index.html"
+        }
+      ]
+    },
+    "securityHeaders": {
+      "status": "PASS",
+      "csp": "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'"
+    },
+    "cachePolicy": {
+      "status": "PASS",
+      "sw": "no-cache, no-store, must-revalidate",
+      "manifest": "no-cache",
+      "asset": "public, max-age=31536000, immutable",
+      "spaRoute": "no-cache"
+    },
+    "compiledAssetPrecache": {
+      "status": "PASS",
+      "assets": [
+        "index-BlacXhPs.js",
+        "index-DlNPXpgC.css",
+        "legacyMigration-CXkmOaPg.js"
+      ]
+    },
+    "staticRuntimeBoundary": {
+      "status": "PASS",
+      "testUtilsPresent": false,
+      "externalServiceWorkerReference": false
+    }
+  }
+}

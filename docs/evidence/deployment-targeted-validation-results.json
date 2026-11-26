@@ -1,0 +1,29 @@
+{
+  "environment": "Chromium production build, real IndexedDB, targeted final-review workflows",
+  "checks": {
+    "concerningSymptomsWorkflowSafetyOverride": {
+      "status": "PASS",
+      "symptomSaved": true,
+      "safetyReviewVisible": true
+    },
+    "preImportBackupRestoreEndToEnd": {
+      "status": "PASS",
+      "originalEntries": 1,
+      "afterImport": {
+        "entries": 0,
+        "backupEntries": 1
+      },
+      "afterRestore": {
+        "entries": 1,
+        "backupExists": true
+      },
+      "restoreNotice": true
+    },
+    "continuouslyOpenMidnightRolloverResume": {
+      "status": "PASS",
+      "beforeMidnight": "2026-11-25",
+      "afterMidnight": "2026-11-26",
+      "method": "Playwright clock.fastForward, documented as laptop-close/reopen semantics; focus/visibility listeners also installed"
+    }
+  }
+}
