@@ -296,7 +296,7 @@ export const archiveSegmentSchema = z.object({
 }).passthrough();
 export const archiveExerciseSchema = z.object({
   id:uuidSchema, nameHe:z.string().min(1).max(200), nameEn:z.string().min(1).max(200),
-  equipment:z.string().max(200), configuration:z.string().max(500),
+  equipment:z.string().max(200), configuration:z.string().max(500).nullable(),
   sets:z.array(z.object({id:uuidSchema, kind:z.enum(['working','drop','backoff','superset','warmup']),segments:z.array(archiveSegmentSchema).min(1).max(20)}).passthrough()).min(1).max(100)
 }).passthrough();
 export const archiveSessionSchema = z.object({

@@ -26,10 +26,10 @@ export function archiveInsights(a:HistoryArchive){
  const sessions=a.sessions.slice().sort((x,y)=>x.localDate.localeCompare(y.localDate));
  const groups=new Map<string,{key:string;name:string;equipment:string;configuration:string;points:{date:string;load:number;reps:number}[]}>();
  for(const s of sessions)for(const e of s.exercises){
-  const key=[e.nameEn,e.equipment,e.configuration].map(x=>x.trim().toLowerCase()).join('|');
+  const key=[e.nameEn,e.equipment,e.configuration??('unknown configuration '+s.localDate)].map(x=>x.trim().toLowerCase()).join('|');
   const candidates=e.sets.filter(t=>t.kind!=='warmup').flatMap(t=>t.segments).filter(p=>p.segment_role==='primary'&&!p.approximate_reps&&p.reps!==null&&Number.isInteger(p.reps)).map(p=>({load:archiveSegmentLoad(p),reps:p.reps??0})).filter((p):p is {load:number;reps:number}=>p.load!==null&&p.load>0).sort((a,b)=>b.load-a.load||b.reps-a.reps);
   const best=candidates[0];if(!best)continue;
-  const g=groups.get(key)??{key,name:e.nameHe,equipment:e.equipment,configuration:e.configuration,points:[]};
+  const g=groups.get(key)??{key,name:e.nameHe,equipment:e.equipment,configuration:e.configuration??'תצורה לא ידועה',points:[]};
   const existing=g.points.find(p=>p.date===s.localDate);
   if(!existing)g.points.push({date:s.localDate,...best});
   else if(best.load>existing.load||best.load===existing.load&&best.reps>existing.reps){existing.load=best.load;existing.reps=best.reps;}
