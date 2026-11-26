@@ -487,3 +487,6 @@ body {background:var(--bg);}
 .anchor-hero{padding:20px 12px;margin-block:12px;background:var(--elevated);border-radius:12px;display:grid;gap:6px}.anchor-hero strong{font-size:36px;letter-spacing:-.05em;color:var(--accent)}.anchor-hero small{color:var(--muted)}
 .history-point{padding-block:12px;border-block-start:1px solid var(--line)}.history-page .training-set{overflow-wrap:anywhere}
 .identity-avatar{display:grid;place-items:center;width:76px;height:76px;border-radius:22px;background:var(--accent);color:var(--on-accent);font-size:28px;font-weight:900}
+
+/* Evidence-based strength review */
+.anchor-pair{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}.anchor-pair>div{display:grid;gap:5px;padding:14px;background:var(--elevated);border-radius:12px;min-width:0;overflow-wrap:anywhere}.anchor-pair strong{font-size:40px;line-height:1.1;color:var(--accent);font-variant-numeric:tabular-nums}.anchor-pair small{color:var(--muted);font-size:12px}.strength-compare select{max-width:100%;min-width:0}.strength-compare .check-row{align-items:flex-start}.strength-compare .check-row input{flex:none}

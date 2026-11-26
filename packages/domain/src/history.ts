@@ -7,7 +7,7 @@ export function archiveSegmentLoad(p:ArchiveSegment):number|null {
  return p.weight_value*expected*(p.weight_unit==='lb'?0.45359237:1);
 }
 export function archiveSummary(s:ArchiveSession){
- let counted=0,full=0,sets=0,segments=0,missing=0,estimated=0,partial=0,failures=0,drops=0;
+ let counted=0,full=0,sets=0,segments=0,missing=0,estimated=0,partial=0,unquantified=0,failures=0,drops=0;
  for(const e of s.exercises)for(const t of e.sets){
   if(t.kind==='warmup')continue;
   sets++;if(t.kind==='drop')drops++;
@@ -17,17 +17,18 @@ export function archiveSummary(s:ArchiveSession){
    if(load===null||p.reps===null)missing++;
    else {counted+=load*p.reps; if(!p.approximate_reps)full+=load*Math.floor(p.reps);}
    if(p.approximate_reps)estimated++;
+   if(p.partial_reps_unknown||(p.excluded_partial_reps_count??0)>0)unquantified++;
    if(p.partial_reps_unknown||(p.excluded_partial_reps_count??0)>0||(p.reps!==null&&!Number.isInteger(p.reps)))partial++;
   }
  }
- return {counted,full,sets,segments,missing,estimated,partial,failures,drops,complete:missing===0&&estimated===0};
+ return {counted,full,sets,segments,missing,estimated,partial,unquantified,failures,drops,complete:missing===0&&estimated===0&&unquantified===0};
 }
 export function archiveInsights(a:HistoryArchive){
  const sessions=a.sessions.slice().sort((x,y)=>x.localDate.localeCompare(y.localDate));
  const groups=new Map<string,{key:string;name:string;equipment:string;configuration:string;points:{date:string;load:number;reps:number}[]}>();
  for(const s of sessions)for(const e of s.exercises){
   const key=[e.nameEn,e.equipment,e.configuration??('unknown configuration '+s.localDate)].map(x=>x.trim().toLowerCase()).join('|');
-  const candidates=e.sets.filter(t=>t.kind!=='warmup').flatMap(t=>t.segments).filter(p=>p.segment_role==='primary'&&!p.approximate_reps&&p.reps!==null&&Number.isInteger(p.reps)).map(p=>({load:archiveSegmentLoad(p),reps:p.reps??0})).filter((p):p is {load:number;reps:number}=>p.load!==null&&p.load>0).sort((a,b)=>b.load-a.load||b.reps-a.reps);
+  const candidates=e.sets.filter(t=>t.kind!=='warmup').flatMap(t=>t.segments).filter(p=>p.segment_role==='primary'&&!p.approximate_reps&&p.reps!==null&&Math.floor(p.reps)>=1).map(p=>({load:archiveSegmentLoad(p),reps:Math.floor(p.reps??0)})).filter((p):p is {load:number;reps:number}=>p.load!==null&&p.load>0).sort((a,b)=>b.load-a.load||b.reps-a.reps);
   const best=candidates[0];if(!best)continue;
   const g=groups.get(key)??{key,name:e.nameHe,equipment:e.equipment,configuration:e.configuration??'תצורה לא ידועה',points:[]};
   const existing=g.points.find(p=>p.date===s.localDate);

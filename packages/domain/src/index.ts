@@ -7,3 +7,5 @@ export * from './coach';
 export * from './workouts';
 
 export * from './history';
+
+export * from './performance';

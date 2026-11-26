@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { workoutImportSchema, workoutSessionSchema, type WorkoutSession, type WorkoutExercise, type WorkoutSet } from '@form/contracts';
-import { compareVolume, effectiveLoad, exerciseVolume, recordedPRs, setVolume, workoutSummary } from '@form/domain';
+import { compareVolume, trainingReferences, linkedReference, effectiveLoad, exerciseVolume, recordedPRs, setVolume, workoutSummary } from '@form/domain';
 import { useForm } from '../context';
 import { useAsync } from '../useAsync';
 import { Card, PageHeader } from '../components/common';
@@ -15,6 +15,8 @@ const numberOrNull=(v:string)=>v.trim()===''?null:Number(v);
 export function TrainingScreen() {
  const {repo,currentDate,refresh,setAnnounce}=useForm();
  const state=useAsync(()=>repo.listWorkouts(),[]);
+ const archiveState=useAsync(()=>repo.getHistoryArchive(),[]);
+ const references=trainingReferences(archiveState.data);
  const [draft,setDraft]=useState<WorkoutSession|null>(null);
  const [incoming,setIncoming]=useState<WorkoutSession[]|null>(null);
  const [message,setMessage]=useState('');
@@ -67,7 +69,7 @@ export function TrainingScreen() {
   {error?<div role="alert" className="notice danger">{error}</div>:null}
   {message?<div role="status" className="notice">{message}</div>:null}
   <Card className="training-hero">
-   <div className="split"><div><p className="route-kicker">STRENGTH / LAST SESSION</p><h2>{latest?.title??'האימון הראשון שלך'}</h2><p className="card-muted">{latest?latest.localDate+' · '+phaseNames[latest.phase]:'התחילו לתעד או ייבאו יומן קיים.'}</p></div><button className="primary-button" type="button" disabled={busy||!!draft} onClick={()=>{setDraft({id:crypto.randomUUID(),localDate:currentDate,title:'',phase:'cut',notes:'',exercises:[newExercise()]});setError('');}}>+ אימון חדש</button></div>
+   <div className="split"><div><p className="route-kicker">STRENGTH / LAST SESSION</p><h2>{latest?.title??'האימון הראשון שלך'}</h2><p className="card-muted">{latest?latest.localDate+' · '+phaseNames[latest.phase]:'התחילו לתעד או ייבאו יומן קיים.'}</p></div><button className="primary-button" type="button" disabled={busy||!!draft} onClick={()=>{setDraft({id:crypto.randomUUID(),localDate:currentDate,title:'',phase:'other',notes:'',exercises:[newExercise()]});setError('');}}>+ אימון חדש</button></div>
    <div className="training-metrics"><div><span>נפח עבודה אחרון</span><strong><bdi className="num">{fmt(summary?.volume,1)}</bdi></strong><small>ק״ג × חזרות</small></div><div><span>סטי עבודה</span><strong className="num">{fmt(summary?.workingSets)}</strong><small>ללא חימום</small></div><div><span>אימונים מתועדים</span><strong className="num">{rows.length}</strong><small>במכשיר זה</small></div></div>
   </Card>
   {draft?<Card className="training-editor">
@@ -76,14 +78,21 @@ export function TrainingScreen() {
    <label className="field"><span>שם האימון (למשל פלג גוף עליון)</span><input className="input" maxLength={160} value={draft.title} onChange={e=>setDraft({...draft,title:e.target.value})}/></label>
    {draft.exercises.map((ex,ei)=><section key={ei} className="training-exercise">
     <div className="split"><h3>תרגיל {ei+1}</h3><button className="secondary-button" type="button" disabled={draft.exercises.length===1} onClick={()=>setDraft({...draft,exercises:draft.exercises.filter((_,i)=>i!==ei)})}>הסר תרגיל</button></div>
-    <label className="field"><span>שם התרגיל / זווית / אחיזה</span><input className="input" value={ex.name} maxLength={160} onChange={e=>editExercise(ei,x=>({...x,name:e.target.value}))}/></label>
-    <label className="field"><span>ציוד או זיהוי מכשיר (להשוואת שיאים)</span><input className="input" value={ex.equipment} maxLength={120} onChange={e=>editExercise(ei,x=>({...x,equipment:e.target.value}))}/></label>
-    <div className="inline-fields"><label className="field"><span>יחידה</span><select className="input" value={ex.unit} onChange={e=>editExercise(ei,x=>({...x,unit:e.target.value as 'kg'|'lb'}))}><option value="kg">ק״ג</option><option value="lb">lbs</option></select></label><label className="field"><span>תצורת עומס</span><select className="input" value={ex.multiplier} onChange={e=>editExercise(ei,x=>({...x,multiplier:Number(e.target.value) as 1|2}))}><option value={1}>משקל כולל ×1</option><option value={2}>בכל יד/צד ×2</option></select></label></div>
+    {references.length?<label className="field"><span>קישור לתרגיל היסטורי באותו ציוד ותצורה</span><select className="input" value={linkedReference(ex,references)?.id??''} onChange={e=>{
+      const ref=references.find(r=>r.id===e.target.value);
+      if(ref&&window.confirm('האם מדובר באותו תרגיל, ציוד, תצורה ובסיס משקל?'))editExercise(ei,x=>({...x,name:ref.name,equipment:ref.equipment,unit:ref.unit,multiplier:ref.multiplier,historyExerciseId:ref.id,sets:[newSet()]}));
+      else if(!ref)editExercise(ei,x=>({...x,historyExerciseId:undefined}));
+    }}><option value="">ללא קישור</option>{references.map(r=><option key={r.id} value={r.id}>{r.date} · {r.name} · {r.equipment} · {r.configuration??'תצורה לא ידועה'}</option>)}</select><small>בחירה מחליפה את הגדרת התרגיל ומאפסת את הסטים של התרגיל בלבד.</small></label>:null}
+    <label className="field"><span>שם התרגיל / זווית / אחיזה</span><input className="input" value={ex.name} maxLength={160} onChange={e=>editExercise(ei,x=>({...x,name:e.target.value,historyExerciseId:undefined}))}/></label>
+    <label className="field"><span>ציוד או זיהוי מכשיר (להשוואת שיאים)</span><input className="input" value={ex.equipment} maxLength={120} onChange={e=>editExercise(ei,x=>({...x,equipment:e.target.value,historyExerciseId:undefined}))}/></label>
+    <div className="inline-fields"><label className="field"><span>יחידה</span><select className="input" value={ex.unit} onChange={e=>editExercise(ei,x=>({...x,unit:e.target.value as 'kg'|'lb'}))}><option value="kg">ק״ג</option><option value="lb">lbs</option></select></label><label className="field"><span>תצורת עומס</span><select className="input" value={ex.multiplier} onChange={e=>editExercise(ei,x=>({...x,multiplier:Number(e.target.value) as 1|2,historyExerciseId:undefined}))}><option value={1}>משקל כולל ×1</option><option value={2}>בכל יד/צד ×2</option></select></label></div>
     {ex.sets.map((set,si)=><div className="training-set" key={si}>
       <div className="split"><strong>סט {si+1}</strong><button className="ghost-button" type="button" disabled={ex.sets.length===1} onClick={()=>editExercise(ei,x=>({...x,sets:x.sets.filter((_,i)=>i!==si)}))}>הסר סט</button></div>
       <label className="field"><span>סוג סט</span><select className="input" value={set.kind} onChange={e=>{const kind=e.target.value as WorkoutSet['kind'];editSet(ei,si,x=>({...x,kind,segments:kind==='drop'?x.segments.length>=2?x.segments:[...x.segments,{load:null,reps:null}]:x.segments.slice(0,1)}));}}>{Object.entries(setNames).map(([k,v])=><option key={k} value={k}>{v}</option>)}</select></label>
       {set.segments.map((segment,pi)=><div className="inline-fields" key={pi}><label className="field"><span>{set.kind==='drop'?'מקטע '+String(pi+1)+' · ':''}משקל ({ex.unit})</span><input className="input" type="number" min="0" max="5000" step="any" value={segment.load??''} onChange={e=>editSet(ei,si,x=>({...x,segments:x.segments.map((p,i)=>i===pi?{...p,load:numberOrNull(e.target.value)}:p)}))}/></label><label className="field"><span>חזרות (0.5 אפשרי)</span><input className="input" type="number" min=".5" max="300" step=".5" value={segment.reps??''} onChange={e=>editSet(ei,si,x=>({...x,segments:x.segments.map((p,i)=>i===pi?{...p,reps:numberOrNull(e.target.value)}:p)}))}/></label></div>)}
       {set.kind==='drop'?<div className="button-row"><button className="secondary-button" type="button" disabled={set.segments.length>=10} onClick={()=>editSet(ei,si,x=>({...x,segments:[...x.segments,{load:null,reps:null}]}))}>+ מקטע ירידה</button><button className="ghost-button" type="button" disabled={set.segments.length<=2} onClick={()=>editSet(ei,si,x=>({...x,segments:x.segments.slice(0,-1)}))}>הסר מקטע אחרון</button></div>:null}
+      {set.kind!=='warmup'?<div className="inline-fields"><label className="field"><span>RIR (חזרות ברזרבה)</span><input className="input" type="number" min="0" max="10" step="1" value={set.rir??''} onChange={e=>editSet(ei,si,x=>({...x,rir:numberOrNull(e.target.value)}))}/></label><label className="check-row"><input type="checkbox" checked={set.failure===true} onChange={e=>editSet(ei,si,x=>({...x,failure:e.target.checked,rir:e.target.checked?0:x.rir}))}/>עד כשל</label></div>:null}
+      <label className="field"><span>הערת סט (אופציונלי)</span><input className="input" maxLength={500} value={set.note??''} onChange={e=>editSet(ei,si,x=>({...x,note:e.target.value}))}/></label>
       <p className="card-muted">{set.kind==='warmup'?'לא נספר בנפח':set.segments.some(p=>p.load===null||p.reps===null)?'יש להשלים משקל וחזרות':fmt(setVolume(set,ex),1)+' ק״ג × חזרות'}</p>
     </div>)}
     <button className="secondary-button" type="button" disabled={ex.sets.length>=100} onClick={()=>editExercise(ei,x=>({...x,sets:[...x.sets,newSet()]}))}>+ סט</button>
@@ -101,7 +110,7 @@ export function TrainingScreen() {
    {openId===session.id?<div className="stack">
     {v.countMismatch||v.volumeMismatch?<p className="notice warn">פער מול הסיכום המקורי: דווח {session.reported?.workingSets??'—'} סטים / {fmt(session.reported?.volume,1)} ק״ג × חזרות. חושב מהסטים: {v.workingSets} / {fmt(v.volume,1)}. לא הושלמו נתונים חסרים.</p>:null}
     {session.notes?<p className="card-muted">{session.notes}</p>:null}{session.reported?.notes?<p className="card-muted">מקור: {session.reported.notes}</p>:null}
-    {session.exercises.map((ex,ei)=><div className="training-exercise" key={ei}><div className="split"><h3>{ex.name}</h3><bdi className="num">{fmt(exerciseVolume(ex),1)}</bdi></div><small>{ex.equipment} · {ex.unit} {ex.multiplier===2?'בכל יד/צד':'כולל'}</small>{ex.sets.map((set,si)=><div className="meal-row" key={si}><div><strong>{setNames[set.kind]} {si+1}{set.kind==='drop'?' · '+String(set.segments.length)+' מקטעים':''}</strong>{set.segments.map((p,pi)=><div className="card-muted" key={pi}><bdi>{p.load===null?'משקל לא ידוע':fmt(p.load,1)+' '+ex.unit} × {fmt(p.reps,1)}{p.load!==null?' · '+fmt(effectiveLoad(p.load,ex.unit,ex.multiplier),2)+' ק״ג אפקטיבי':''}</bdi></div>)}{set.note?<small>{set.note}</small>:null}</div><bdi className="num">{set.kind==='warmup'?'מוחרג':fmt(setVolume(set,ex),1)}</bdi></div>)}</div>)}
+    {session.exercises.map((ex,ei)=><div className="training-exercise" key={ei}><div className="split"><h3>{ex.name}</h3><bdi className="num">{fmt(exerciseVolume(ex),1)}</bdi></div><small>{ex.equipment} · {ex.unit} {ex.multiplier===2?'בכל יד/צד':'כולל'}</small>{ex.sets.map((set,si)=><div className="meal-row" key={si}><div><strong>{setNames[set.kind]} {si+1}{set.kind==='drop'?' · '+String(set.segments.length)+' מקטעים':''}</strong>{set.segments.map((p,pi)=><div className="card-muted" key={pi}><bdi>{p.load===null?'משקל לא ידוע':fmt(p.load,1)+' '+ex.unit} × {fmt(p.reps,1)}{p.load!==null?' · '+fmt(effectiveLoad(p.load,ex.unit,ex.multiplier),2)+' ק״ג אפקטיבי':''}</bdi></div>)}{set.failure?<small>עד כשל · </small>:null}{set.rir!=null?<small>RIR {set.rir} · </small>:null}{set.note?<small>{set.note}</small>:null}</div><bdi className="num">{set.kind==='warmup'?'מוחרג':fmt(setVolume(set,ex),1)}</bdi></div>)}</div>)}
     <div className="button-row"><button className="secondary-button" type="button" disabled={!!draft||busy} onClick={()=>{setDraft(structuredClone(session));window.scrollTo({top:0,behavior:'auto'});}}>ערוך</button><button className="danger-button" type="button" disabled={busy||!!draft} onClick={()=>void remove(session.id)}>מחק</button></div>
    </div>:null}</article>}):<p className="card-muted">אין אימונים בפילטר הנבחר.</p>}
   </Card>

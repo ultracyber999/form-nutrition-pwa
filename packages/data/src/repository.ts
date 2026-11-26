@@ -670,8 +670,26 @@ export class FormRepository {
     const archive=historyArchiveSchema.parse(value);
     const validIdentity=identity===undefined?undefined:localIdentitySchema.parse(identity);
     await inTransaction(this.db,[this.db.meta],async()=>{
+      const previousArchive=await this.getHistoryArchive();
+      await this.db.meta.put({key:'nivne-history-undo-v1',value:{archive:previousArchive}});
       await this.db.meta.put({key:'nivne-history-v1',value:archive});
       if(validIdentity!==undefined)await this.db.meta.put({key:'nivne-identity-v1',value:validIdentity});
+    });
+  }
+
+  async hasHistoryUndo():Promise<boolean>{
+    return (await this.db.meta.get('nivne-history-undo-v1'))!==undefined;
+  }
+  async undoHistoryImport():Promise<boolean>{
+    return inTransaction(this.db,[this.db.meta],async()=>{
+      const row=await this.db.meta.get('nivne-history-undo-v1');
+      if(!row)return false;
+      const previous=row.value as {archive:unknown};
+      const archive=historyArchiveSchema.nullable().parse(previous.archive);
+      await this.db.meta.put({key:'nivne-history-v1',value:archive});
+      // Do not revert identity edits made after import.
+      await this.db.meta.delete('nivne-history-undo-v1');
+      return true;
     });
   }
 
@@ -827,6 +845,7 @@ export class FormRepository {
       // Missing fields in older backups preserve independently recorded local data.
       if(bundle.historyArchive!==undefined&&(mode==='replace-all'||!(await this.getHistoryArchive())))await this.db.meta.put({key:'nivne-history-v1',value:bundle.historyArchive});
       if(bundle.localIdentity!==undefined&&(mode==='replace-all'||!(await this.getLocalIdentity())))await this.db.meta.put({key:'nivne-identity-v1',value:bundle.localIdentity});
+      if(bundle.historyArchive!==undefined&&mode==='replace-all')await this.db.meta.delete('nivne-history-undo-v1');
       // Older nutrition-only backups do not erase independently recorded workouts.
       if (bundle.workouts !== undefined) {
         if (mode === 'replace-all') await this.db.meta.put({key:'workouts-v1',value:bundle.workouts});

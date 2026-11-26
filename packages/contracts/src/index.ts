@@ -242,8 +242,11 @@ export const workoutSegmentSchema = z.object({
 export const workoutSetSchema = z.object({
   kind: z.enum(['warmup', 'working', 'drop']),
   segments: z.array(workoutSegmentSchema).min(1).max(10),
-  note: z.string().max(500).optional()
+  note: z.string().max(500).optional(),
+  failure: z.boolean().optional(),
+  rir: z.number().int().min(0).max(10).nullable().optional()
 }).superRefine((set, ctx) => {
+  if (set.failure === true && set.rir != null && set.rir !== 0) ctx.addIssue({ code: 'custom', message: 'failure conflicts with positive RIR' });
   if ((set.kind === 'drop' && set.segments.length < 2) || (set.kind !== 'drop' && set.segments.length !== 1))
     ctx.addIssue({ code: 'custom', message: 'invalid set segment count' });
   if (set.kind !== 'warmup' && set.segments.some(s => s.load === null || s.reps === null))
@@ -256,7 +259,8 @@ export const workoutExerciseSchema = z.object({
   equipment: z.string().trim().min(1).max(120),
   unit: z.enum(['kg','lb']),
   multiplier: z.union([z.literal(1),z.literal(2)]),
-  sets: z.array(workoutSetSchema).min(1).max(100)
+  sets: z.array(workoutSetSchema).min(1).max(100),
+  historyExerciseId: uuidSchema.optional()
 });
 export const workoutSessionSchema = z.object({
   id: uuidSchema,
@@ -291,6 +295,7 @@ export const archiveSegmentSchema = z.object({
   approximate_reps: z.boolean(),
   partial_reps_unknown: z.boolean(),
   excluded_partial_reps_count: z.number().nonnegative().nullable(),
+  counted_fractional_partial_reps: z.number().nonnegative().nullable().optional(),
   failure: z.boolean(),
   independentCalculation: z.object({issues:z.array(z.string().max(100)).max(30)}).loose()
 }).loose();
