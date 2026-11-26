@@ -138,7 +138,7 @@ export function SettingsScreen() {
             <p className="card-muted">PWA: ההתקנה זמינה לאחר טעינה ראשונה ב־HTTPS/localhost דרך תפריט הדפדפן או “הוסף למסך הבית”. מצב לא מקוון נבדק בגרסת build בלבד.</p>
           </Card>
           <Card>
-            <h2>ייבוא ושחזור</h2>
+            <h2>ייבוא ושחזור</h2><p className="card-muted">גיבוי FORM מלא כולל גם אימונים. ייבוא גיבוי ישן ללא אימונים שומר על יומן האימונים הקיים.</p>
             <FilePicker label="קובץ FORM JSON" onText={setImportText} />
             <div className="button-row"><button className="secondary-button" type="button" onClick={() => void previewFile('export')}>בדיקת ייבוא</button><button className="primary-button" type="button" disabled={!importText} onClick={() => void applyImport('export', 'merge-skip-duplicates')}>מיזוג בטוח</button><button className="danger-button" type="button" disabled={!importText} onClick={() => void applyImport('export', 'replace-all')}>החלפה מלאה</button></div>
             {preImportBackup ? <p className="notice">קיים גיבוי מקומי אחרון מלפני ייבוא. <button className="secondary-button" type="button" onClick={() => void restorePreImportBackup()}>שחזור גיבוי זה</button></p> : null}

@@ -4,7 +4,7 @@ import { todayInTimeZone } from '@form/domain';
 import { useEffect, useState } from 'react';
 import { useForm } from '../context';
 
-type NavGlyph = 'today' | 'nutrition' | 'progress' | 'coach' | 'settings' | 'checkin' | 'sun' | 'moon';
+type NavGlyph = 'today' | 'nutrition' | 'progress' | 'coach' | 'settings' | 'checkin' | 'training' | 'sun' | 'moon';
 function NavIcon({ name }: { name: NavGlyph }) {
   const paths: Record<NavGlyph, string> = {
     today: 'M3 10 12 3l9 7v10h-6v-6H9v6H3z',
@@ -12,6 +12,7 @@ function NavIcon({ name }: { name: NavGlyph }) {
     progress: 'M3 19h18M4 15l6-6 4 4 6-8M16 5h4v4',
     coach: 'M12 2l2.6 7.4L22 12l-7.4 2.6L12 22l-2.6-7.4L2 12l7.4-2.6z',
     settings: 'M4 7h16M4 17h16M8 4v6M16 14v6',
+    training: 'M3 9v6m3-8v10m12-10v10m3-8v6M6 12h12',
     checkin: 'M5 4h14v17H5zM9 3h6v3H9zM8 13l2 2 5-5',
     sun: 'M12 2v3m0 14v3M2 12h3m14 0h3M5 5l2 2m10 10 2 2M19 5l-2 2M7 17l-2 2M16 12a4 4 0 1 1-8 0 4 4 0 0 1 8 0',
     moon: 'M20 15A9 9 0 0 1 9 4a9 9 0 1 0 11 11z'
@@ -38,6 +39,7 @@ export function AppShell({ children, headingRef }: { children: ReactNode; headin
   const navItems = [
     { to: '/today', label: 'היום', icon: 'today' as const },
     { to: `/nutrition/${today}`, label: 'תזונה', icon: 'nutrition' as const },
+    { to: '/training', label: 'אימונים', icon: 'training' as const },
     { to: '/progress', label: 'התקדמות', icon: 'progress' as const },
     { to: '/coach', label: 'המלצות', icon: 'coach' as const },
     { to: '/settings', label: 'הגדרות', icon: 'settings' as const }
@@ -66,7 +68,7 @@ export function AppShell({ children, headingRef }: { children: ReactNode; headin
       </main>
       <nav className="mobile-nav" aria-label="ניווט תחתון">
         <NavLink to="/today"><NavIcon name="today"/>היום</NavLink>
-        <NavLink to="/progress"><NavIcon name="progress"/>התקדמות</NavLink>
+        <NavLink to="/training"><NavIcon name="training"/>אימונים</NavLink>
         <button className="mobile-add" type="button" aria-label="הוספת אוכל" onClick={() => void navigate(`/nutrition/${today}?add=1`)}><span aria-hidden>+</span></button>
         <NavLink to={`/nutrition/${today}`}><NavIcon name="nutrition"/>תזונה</NavLink>
         <NavLink to="/settings"><NavIcon name="settings"/>עוד</NavLink>

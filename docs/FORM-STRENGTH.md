@@ -1,0 +1,7 @@
+# FORM Strength / workout journal
+
+All records stay local. Workout data uses the existing IndexedDB meta store, with runtime validation and transactional merge/save/delete; no database version bump. Full FORM exports include optional workouts; older backups lacking this property preserve workout history on replacement. Older app versions cannot round-trip the new property: export a workout-specific backup before rollback. Workout-only JSON import is a merge by stable ID. No personal history is embedded in source.
+
+Nominal volume load uses exact 0.45359237 lb-to-kg and a multiplier of one (total load) or two (each hand/side). Warmups are excluded, unknown warmup details stay null; working data must be complete. Half reps are supported as the user's bookkeeping convention, not physiological equivalence. Drop groups count once; segment loads decrease. PRs are recorded heaviest load then reps, separated by exercise name, equipment and multiplier. Phase comparisons are descriptive, not automatic workload prescriptions. Machine stack weights are not actual tissue forces. Compare matched equipment/exercise configurations; aggregate session loads cannot establish muscle retention.
+
+Source totals may differ from raw records; imported claims are retained and mismatch shown. Full workout data has no cloud sync. The current module does not estimate energy expenditure or alter nutrition targets. A later phase may add exercise catalog IDs, explicit unilateral per-side set tracking, RIR/RPE, rest periods, routines, and richer PR histories.

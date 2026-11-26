@@ -234,6 +234,45 @@ export const coachReviewSchema = z.object({
 });
 export type CoachReview = z.infer<typeof coachReviewSchema>;
 
+
+export const workoutSegmentSchema = z.object({
+  load: z.number().min(0).max(5000).nullable(),
+  reps: z.number().positive().max(300).refine(n => Number.isInteger(n * 2), 'reps must be whole or half').nullable()
+});
+export const workoutSetSchema = z.object({
+  kind: z.enum(['warmup', 'working', 'drop']),
+  segments: z.array(workoutSegmentSchema).min(1).max(10),
+  note: z.string().max(500).optional()
+}).superRefine((set, ctx) => {
+  if ((set.kind === 'drop' && set.segments.length < 2) || (set.kind !== 'drop' && set.segments.length !== 1))
+    ctx.addIssue({ code: 'custom', message: 'invalid set segment count' });
+  if (set.kind !== 'warmup' && set.segments.some(s => s.load === null || s.reps === null))
+    ctx.addIssue({ code: 'custom', message: 'working sets require known load and reps' });
+  if (set.kind === 'drop' && set.segments.some((s,i) => i > 0 && (s.load ?? 0) >= (set.segments[i-1]?.load ?? 0)))
+    ctx.addIssue({ code: 'custom', message: 'drop-set loads must decrease' });
+});
+export const workoutExerciseSchema = z.object({
+  name: z.string().trim().min(1).max(160),
+  equipment: z.string().trim().min(1).max(120),
+  unit: z.enum(['kg','lb']),
+  multiplier: z.union([z.literal(1),z.literal(2)]),
+  sets: z.array(workoutSetSchema).min(1).max(100)
+});
+export const workoutSessionSchema = z.object({
+  id: uuidSchema,
+  localDate: isoDateSchema,
+  title: z.string().trim().min(1).max(160),
+  phase: z.enum(['pre-cut','cut','maintenance','other']),
+  notes: z.string().max(5000).default(''),
+  exercises: z.array(workoutExerciseSchema).min(1).max(60),
+  reported: z.object({ workingSets: z.number().int().nonnegative().max(6000).optional(), volume: z.number().nonnegative().max(1e10).optional(), notes: z.string().max(5000).optional() }).optional()
+});
+export type WorkoutSession = z.infer<typeof workoutSessionSchema>;
+export type WorkoutExercise = z.infer<typeof workoutExerciseSchema>;
+export type WorkoutSet = z.infer<typeof workoutSetSchema>;
+export const workoutsSchema = z.array(workoutSessionSchema).max(3000).refine(rows => new Set(rows.map(row => row.id)).size === rows.length, 'duplicate workout IDs');
+export const workoutImportSchema = z.object({format:z.literal('form-workouts'),schemaVersion:z.literal(1),sessions:workoutsSchema});
+
 export const exportBundleSchema = z.object({
   format: z.literal('form-export'),
   schemaVersion: z.literal(1),
@@ -248,7 +287,8 @@ export const exportBundleSchema = z.object({
   dailyCheckins: z.array(dailyCheckinSchema),
   mealTemplates: z.array(mealTemplateSchema),
   recipes: z.array(recipeSchema),
-  coachReviews: z.array(coachReviewSchema)
+  coachReviews: z.array(coachReviewSchema),
+  workouts: workoutsSchema.optional()
 });
 export type ExportBundle = z.infer<typeof exportBundleSchema>;
 

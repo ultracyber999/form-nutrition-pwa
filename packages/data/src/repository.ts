@@ -11,9 +11,10 @@ import type {
   NutrientProfile,
   NutritionPlan,
   Profile,
-  Recipe
+  Recipe,
+  WorkoutSession
 } from '@form/contracts';
-import { exportBundleSchema, foodEntrySchema, measurementSchema, dailyCheckinSchema, nutritionPlanSchema, profileSchema, goalSchema, foodVersionSchema, mealTemplateSchema, recipeSchema, coachReviewSchema } from '@form/contracts';
+import { workoutsSchema, workoutSessionSchema, exportBundleSchema, foodEntrySchema, measurementSchema, dailyCheckinSchema, nutritionPlanSchema, profileSchema, goalSchema, foodVersionSchema, mealTemplateSchema, recipeSchema, coachReviewSchema } from '@form/contracts';
 import { calculateConsumed, compareDates, deriveCarbTargetG, todayInTimeZone, validatePlanTargets } from '@form/domain';
 import { builtinFoods } from '@form/test-data';
 import type { Table } from 'dexie';
@@ -654,8 +655,38 @@ export class FormRepository {
     return this.db.coachReviews.orderBy('asOfDate').reverse().toArray();
   }
 
+  async listWorkouts(): Promise<WorkoutSession[]> {
+    const row = await this.db.meta.get('workouts-v1');
+    return workoutsSchema.parse(row?.value ?? []);
+  }
+
+  async saveWorkout(session: WorkoutSession): Promise<void> {
+    const valid = workoutSessionSchema.parse(session);
+    await inTransaction(this.db, [this.db.meta], async () => {
+      const rows = await this.listWorkouts();
+      await this.db.meta.put({key:'workouts-v1',value:workoutsSchema.parse([...rows.filter(s=>s.id!==valid.id),valid])});
+    });
+  }
+
+  async deleteWorkout(id: string): Promise<void> {
+    await inTransaction(this.db,[this.db.meta],async()=>{
+      await this.db.meta.put({key:'workouts-v1',value:(await this.listWorkouts()).filter(s=>s.id!==id)});
+    });
+  }
+
+  async mergeWorkouts(incoming: WorkoutSession[]): Promise<number> {
+    const valid = workoutsSchema.parse(incoming);
+    return inTransaction(this.db,[this.db.meta],async()=>{
+      const rows=await this.listWorkouts();
+      const ids=new Set(rows.map(s=>s.id));
+      const added=valid.filter(s=>!ids.has(s.id));
+      await this.db.meta.put({key:'workouts-v1',value:workoutsSchema.parse([...rows,...added])});
+      return added.length;
+    });
+  }
+
   async exportBundle(): Promise<ExportBundle> {
-    const [profile, goal, nutritionPlans, foodVersions, foodEntries, diaryDays, measurements, dailyCheckins, mealTemplates, recipes, coachReviews] = await Promise.all([
+    const [profile, goal, nutritionPlans, foodVersions, foodEntries, diaryDays, measurements, dailyCheckins, mealTemplates, recipes, coachReviews, workouts] = await Promise.all([
       this.getProfile(),
       this.getCurrentGoal(),
       this.db.nutritionPlans.toArray(),
@@ -666,7 +697,8 @@ export class FormRepository {
       this.db.dailyCheckins.toArray(),
       this.db.mealTemplates.toArray(),
       this.db.recipes.toArray(),
-      this.db.coachReviews.toArray()
+      this.db.coachReviews.toArray(),
+      this.listWorkouts()
     ]);
     const bundle: ExportBundle = {
       format: 'form-export',
@@ -682,7 +714,8 @@ export class FormRepository {
       dailyCheckins,
       mealTemplates,
       recipes,
-      coachReviews
+      coachReviews,
+      workouts
     };
     return exportBundleSchema.parse(bundle);
   }
@@ -708,7 +741,8 @@ export class FormRepository {
       dailyCheckins: bundle.dailyCheckins.length,
       mealTemplates: bundle.mealTemplates.length,
       recipes: bundle.recipes.length,
-      coachReviews: bundle.coachReviews.length
+      coachReviews: bundle.coachReviews.length,
+      workouts: bundle.workouts?.length ?? 0
     };
     const duplicates: Record<string, number> = {};
     const checks: Array<[string, string[]]> = [
@@ -727,6 +761,8 @@ export class FormRepository {
       const existing = await table.bulkGet(ids);
       duplicates[tableName] = existing.filter(Boolean).length;
     }
+    const workoutIds = new Set((await this.listWorkouts()).map(s=>s.id));
+    duplicates.workouts = bundle.workouts?.filter(s=>workoutIds.has(s.id)).length ?? 0;
     return { valid: true, errors: [], counts, duplicates, bytes };
   }
 
@@ -762,6 +798,15 @@ export class FormRepository {
       await putRows('mealTemplates', bundle.mealTemplates);
       await putRows('recipes', bundle.recipes);
       await putRows('coachReviews', bundle.coachReviews);
+      // Older nutrition-only backups do not erase independently recorded workouts.
+      if (bundle.workouts !== undefined) {
+        if (mode === 'replace-all') await this.db.meta.put({key:'workouts-v1',value:bundle.workouts});
+        else {
+          const rows = await this.listWorkouts();
+          const ids = new Set(rows.map(s=>s.id));
+          await this.db.meta.put({key:'workouts-v1',value:workoutsSchema.parse([...rows,...bundle.workouts.filter(s=>!ids.has(s.id))])});
+        }
+      }
     });
     return { backup, counts: preview.counts };
   }

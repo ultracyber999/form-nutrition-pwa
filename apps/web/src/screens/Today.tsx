@@ -15,21 +15,22 @@ export function TodayScreen() {
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
   const date = selectedDate ?? today;
   const state = useAsync(async () => {
-    const [entries, diary, plans, measurements, checkins, goal, diaryDays] = await Promise.all([
+    const [entries, diary, plans, measurements, checkins, goal, diaryDays, workouts] = await Promise.all([
       repo.entriesForDate(date),
       repo.diaryDay(date),
       repo.listPlans(),
       repo.listMeasurements(),
       repo.listCheckins(),
       repo.getCurrentGoal(),
-      repo.listDiaryDays()
+      repo.listDiaryDays(),
+      repo.listWorkouts()
     ]);
-    return { entries, diary, plans, measurements, checkins, goal, diaryDays };
+    return { entries, diary, plans, measurements, checkins, goal, diaryDays, workouts };
   }, [date, timezone]);
 
   if (state.loading) return <PageHeader kicker="FORM / TODAY" title="טוען את המצב שלך" subtitle="טוען נתונים…" />;
   if (state.error || !state.data) return <div className="notice danger" role="alert">{state.error ?? 'לא ניתן לטעון'}</div>;
-  const { entries, diary, plans, measurements, checkins, goal, diaryDays } = state.data;
+  const { entries, diary, plans, measurements, checkins, goal, diaryDays, workouts } = state.data;
   const plan = resolvePlanForDate(plans, date);
   const totals = sumEntryNutrients(entries);
   const activeEntries = entries.filter((entry) => entry.deletedAt === null);
@@ -44,7 +45,7 @@ export function TodayScreen() {
   const dates = dateRange(date, 7);
   const week = dates.map((d) => {
     const row = checkins.find((c) => c.localDate === d);
-    return { date: d, training: row?.trainingStatus ?? null, food: diaryStatus(diaryDays.find((x) => x.localDate === d)), weighed: weights.some((w) => w.localDate === d) };
+    return { date: d, training: workouts.some(w=>w.localDate===d && w.exercises.some(e=>e.sets.some(s=>s.kind!=='warmup'))) ? 'strength' : row?.trainingStatus ?? null, food: diaryStatus(diaryDays.find((x) => x.localDate === d)), weighed: weights.some((w) => w.localDate === d) };
   });
   const strengthDays = week.filter((d) => d.training === 'strength').length;
   const completeDays = week.filter((d) => d.food === 'complete').length;
@@ -105,7 +106,7 @@ export function TodayScreen() {
           {plan?.strengthSessionsPerWeek != null ? <p className="card-muted">יעד אימוני כוח נוכחי: {plan.strengthSessionsPerWeek} בשבוע. ימי אימון אינם ספירת אימונים מרובים ביום.</p> : null}
           <div className="rhythm-days" role="list" aria-label="תיעוד שבעת הימים האחרונים">{week.map((day) => <Link role="listitem" key={day.date} to={'/check-in/' + day.date} className={'rhythm-day ' + (day.date === date ? 'current' : '')} aria-label={dateLabel(day.date) + ': ' + (day.training === 'strength' ? 'אימון כוח' : day.training === 'rest' ? 'מנוחה' : day.training === 'other' ? 'פעילות אחרת' : 'אימון לא מתועד') + ', ' + (day.food === 'complete' ? 'יומן מלא' : day.food === 'partial' ? 'יומן חלקי' : 'אין יומן') + (day.weighed ? ', שקילה מתועדת' : ', אין שקילה')}><span>{day.date.slice(-2)}</span><b className={day.training === 'strength' ? 'strength' : ''}>{day.training === 'strength' ? '✓' : day.training === 'rest' ? 'מ' : day.training === 'other' ? 'א' : '—'}</b><i className={'rhythm-dot ' + day.food} aria-hidden="true"/><i className={'rhythm-weight ' + (day.weighed ? 'recorded' : '')} aria-hidden="true"/></Link>)}</div>
           <div className="rhythm-legend"><span>✓ כוח · מ מנוחה · א אחר · — חסר</span><span>● יומן: מלא / חלקי / חסר · קו: שקילה</span></div>
-          <Link className="secondary-button" to={'/check-in/' + date}>עדכון פעילות ומדדים</Link>
+          <div className="button-row"><Link className="secondary-button" to="/training">יומן אימונים ←</Link><Link className="secondary-button" to={'/check-in/' + date}>עדכון פעילות</Link></div>
         </Card>
       </div>
       <div className="desktop-two daily-secondary">

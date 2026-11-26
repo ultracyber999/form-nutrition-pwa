@@ -8,6 +8,7 @@ import { NutritionScreen } from './screens/Nutrition';
 import { ProgressScreen } from './screens/Progress';
 import { CheckInScreen } from './screens/CheckIn';
 import { CoachScreen } from './screens/Coach';
+import { TrainingScreen } from './screens/Training';
 import { SettingsScreen } from './screens/Settings';
 
 export function App() {
@@ -33,6 +34,7 @@ export function App() {
         <Route path="/onboarding" element={<OnboardingScreen />} />
         <Route path="/today" element={needsOnboarding ? <Navigate to="/onboarding" replace /> : shell(<TodayScreen />)} />
         <Route path="/nutrition/:date" element={needsOnboarding ? <Navigate to="/onboarding" replace /> : shell(<NutritionScreen />)} />
+        <Route path="/training" element={needsOnboarding ? <Navigate to="/onboarding" replace /> : shell(<TrainingScreen />)} />
         <Route path="/progress" element={needsOnboarding ? <Navigate to="/onboarding" replace /> : shell(<ProgressScreen />)} />
         <Route path="/check-in/:date" element={needsOnboarding ? <Navigate to="/onboarding" replace /> : shell(<CheckInScreen />)} />
         <Route path="/coach" element={needsOnboarding ? <Navigate to="/onboarding" replace /> : shell(<CoachScreen />)} />
