@@ -11,11 +11,11 @@ import { fmt, mealLabels, nullableNumber, nutrientText } from '../utils';
 type Mode = 'search' | 'manual' | 'templates' | 'recipes' | 'custom-food';
 
 export function NutritionScreen() {
-  const { repo, refresh, setAnnounce } = useForm();
+  const { repo, refresh, setAnnounce, timezone } = useForm();
   const params = useParams();
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
-  const date = params.date ?? todayInTimeZone('Asia/Jerusalem');
+  const date = params.date ?? todayInTimeZone(timezone);
   const [addOpen, setAddOpen] = useState(searchParams.get('add') === '1');
   const [deletedUndo, setDeletedUndo] = useState<FoodEntry | null>(null);
   const [error, setError] = useState('');
@@ -58,10 +58,10 @@ export function NutritionScreen() {
       <Card className="hero-card">
         <div className="split"><h2>סיכום היום</h2><span className={`pill ${complete ? 'good' : activeEntries.length ? 'warn' : ''}`}>{complete ? 'יום הושלם' : activeEntries.length ? 'יום חלקי' : 'אין רישום'}</span></div>
         <div className="macro-list">
-          <MacroBar label="קלוריות" consumed={totals.totals.kcal} target={null} className="accent" unit="קל׳" />
-          <MacroBar label="חלבון" consumed={totals.totals.proteinG} target={null} className="protein" />
-          <MacroBar label="פחמימות" consumed={totals.totals.carbG} target={null} className="carb" />
-          <MacroBar label="שומן" consumed={totals.totals.fatG} target={null} className="fat" />
+          <MacroBar label="קלוריות" consumed={totals.totals.kcal} target={null} className="accent" incomplete={totals.unknownCounts.kcal > 0} unit="קל׳" />
+          <MacroBar label="חלבון" consumed={totals.totals.proteinG} target={null} className="protein" incomplete={totals.unknownCounts.proteinG > 0} />
+          <MacroBar label="פחמימות" consumed={totals.totals.carbG} target={null} className="carb" incomplete={totals.unknownCounts.carbG > 0} />
+          <MacroBar label="שומן" consumed={totals.totals.fatG} target={null} className="fat" incomplete={totals.unknownCounts.fatG > 0} />
         </div>
         {Object.values(totals.unknownCounts).some(Boolean) ? <p className="notice warn">חלק מהערכים אינם ידועים. מוצג סיכום חלקי.</p> : null}
         <div className="button-row" style={{ marginBlockStart: 14 }}>

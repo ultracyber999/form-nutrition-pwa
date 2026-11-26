@@ -17,6 +17,7 @@ type FormContextValue = {
   announce: string;
   setAnnounce: (message: string) => void;
   storageError: string | null;
+  timezone: string;
 };
 
 const FormContext = createContext<FormContextValue | null>(null);
@@ -28,6 +29,7 @@ export function FormProvider({ children }: { children: ReactNode }) {
   const [theme, setThemeState] = useState<ThemePreference>(() => localStorage.getItem('form.theme') === 'light' ? 'light' : 'dark');
   const [announce, setAnnounce] = useState('');
   const [storageError, setStorageError] = useState<string | null>(null);
+  const [timezone, setTimezone] = useState('Asia/Jerusalem');
 
   useEffect(() => {
     let cancelled = false;
@@ -35,6 +37,9 @@ export function FormProvider({ children }: { children: ReactNode }) {
       .then(() => repository.getProfile())
       .then((profile) => {
         if (!cancelled) {
+          const zone = profile?.timezone ?? 'Asia/Jerusalem';
+          repository.setTimeZone(zone);
+          setTimezone(zone);
           setNeedsOnboarding(profile === null);
           setReady(true);
         }
@@ -58,7 +63,7 @@ export function FormProvider({ children }: { children: ReactNode }) {
 
   const refresh = useCallback(() => setRefreshKey((value) => value + 1), []);
   const setTheme = useCallback((next: ThemePreference) => setThemeState(next), []);
-  const value = useMemo(() => ({ repo: repository, ready, refreshKey, refresh, needsOnboarding, setNeedsOnboarding, theme, setTheme, announce, setAnnounce, storageError }), [ready, refreshKey, refresh, needsOnboarding, theme, setTheme, announce, storageError]);
+  const value = useMemo(() => ({ repo: repository, ready, refreshKey, refresh, needsOnboarding, setNeedsOnboarding, theme, setTheme, announce, setAnnounce, storageError, timezone }), [ready, refreshKey, refresh, needsOnboarding, theme, setTheme, announce, storageError, timezone]);
   return <FormContext.Provider value={value}>{children}</FormContext.Provider>;
 }
 

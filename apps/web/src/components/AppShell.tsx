@@ -4,14 +4,6 @@ import { todayInTimeZone } from '@form/domain';
 import { useEffect, useState } from 'react';
 import { useForm } from '../context';
 
-const navItems = [
-  { to: '/today', label: 'היום', icon: '⌂' },
-  { to: `/nutrition/${todayInTimeZone('Asia/Jerusalem')}`, label: 'תזונה', icon: '☕' },
-  { to: '/progress', label: 'התקדמות', icon: '↗' },
-  { to: '/coach', label: 'המלצות', icon: '✦' },
-  { to: '/settings', label: 'הגדרות', icon: '⚙' }
-];
-
 function useOnlineStatus() {
   const [online, setOnline] = useState(() => navigator.onLine);
   useEffect(() => {
@@ -25,9 +17,16 @@ function useOnlineStatus() {
 
 export function AppShell({ children, headingRef }: { children: ReactNode; headingRef: RefObject<HTMLHeadingElement | null> }) {
   const navigate = useNavigate();
-  const { theme, setTheme } = useForm();
+  const { theme, setTheme, timezone } = useForm();
   const online = useOnlineStatus();
-  const today = todayInTimeZone('Asia/Jerusalem');
+  const today = todayInTimeZone(timezone);
+  const navItems = [
+    { to: '/today', label: 'היום', icon: '⌂' },
+    { to: `/nutrition/${today}`, label: 'תזונה', icon: '☕' },
+    { to: '/progress', label: 'התקדמות', icon: '↗' },
+    { to: '/coach', label: 'המלצות', icon: '✦' },
+    { to: '/settings', label: 'הגדרות', icon: '⚙' }
+  ];
   return (
     <div className="app-shell">
       <a className="skip-link" href="#content">דלג לתוכן</a>

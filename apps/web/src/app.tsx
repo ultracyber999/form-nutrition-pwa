@@ -12,7 +12,7 @@ import { SettingsScreen } from './screens/Settings';
 import { todayInTimeZone } from '@form/domain';
 
 export function App() {
-  const { ready, needsOnboarding, announce, storageError } = useForm();
+  const { ready, needsOnboarding, announce, storageError, timezone } = useForm();
   const location = useLocation();
   const headingRef = useRef<HTMLHeadingElement | null>(null);
 
@@ -24,7 +24,7 @@ export function App() {
     return <main className="boot" aria-live="polite"><h1>FORM.</h1><p>טוען נתונים…</p></main>;
   }
 
-  const today = todayInTimeZone('Asia/Jerusalem');
+  const today = todayInTimeZone(timezone);
   const shell = (element: ReactElement) => <AppShell headingRef={headingRef}>{element}</AppShell>;
 
   return (

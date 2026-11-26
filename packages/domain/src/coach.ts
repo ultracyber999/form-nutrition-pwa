@@ -36,6 +36,7 @@ export type WindowEvidence = {
   adherentDays: number;
   eligibleIntakeDays: number;
   stepDays: number;
+  meanSteps: number | null;
   sleepDays: number;
   meanHunger: number | null;
   meanEnergy: number | null;
@@ -117,6 +118,7 @@ export function reviewCoach(input: CoachInput): CoachResult {
       adherentDays: adherence.adherentDays,
       eligibleIntakeDays: adherence.eligibleDays,
       stepDays: coverage.stepDays,
+      meanSteps: avgCheckin(checkins.map((checkin) => checkin.steps)),
       sleepDays: coverage.sleepDays,
       meanHunger: avgCheckin(checkins.map((checkin) => checkin.hunger1to5)),
       meanEnergy: avgCheckin(checkins.map((checkin) => checkin.energy1to5))
@@ -173,10 +175,14 @@ export function reviewCoach(input: CoachInput): CoachResult {
     } else if (deltaRecent !== null && deltaPrior !== null && deltaRecent >= -0.2 && deltaPrior >= -0.2) {
       const adequateAdherence = evidenceWindows.every((window) => window.eligibleIntakeDays >= 5 && window.adherentDays >= 4);
       const adequateActivityRecovery = evidenceWindows.every((window) => window.stepDays >= 5);
-      if (!adequateAdherence || !adequateActivityRecovery) {
+      const priorSteps = evidenceWindows[1]?.meanSteps ?? null;
+      const recentSteps = evidenceWindows[0]?.meanSteps ?? null;
+      const majorActivityShift = priorSteps !== null && priorSteps > 0 && recentSteps !== null && Math.abs(recentSteps - priorSteps) / priorSteps > 0.2;
+      if (!adequateAdherence || !adequateActivityRecovery || majorActivityShift) {
         status = 'review-logging-and-context';
         if (!adequateAdherence) reasonCodes.push('intake-not-consistently-near-target');
         if (!adequateActivityRecovery) reasonCodes.push('insufficient-activity-context');
+        if (majorActivityShift) reasonCodes.push('major-activity-shift-requires-review');
       } else {
         status = 'consider-small-adjustment';
         reasonCodes.push('two-week-stall-with-adequate-context');

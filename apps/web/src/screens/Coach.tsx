@@ -26,6 +26,7 @@ const reasonText: Record<string, string> = {
   'weekly-loss-within-target-range': 'קצב השינוי נמצא בטווח המעקב הראשוני',
   'intake-not-consistently-near-target': 'הצריכה המתועדת לא הייתה עקבית מספיק עם היעד',
   'insufficient-activity-context': 'אין מספיק הקשר פעילות/צעדים',
+  'major-activity-shift-requires-review': 'נרשם שינוי משמעותי בפעילות — נדרשת בחינה לפני הפחתה',
   'two-week-stall-with-adequate-context': 'נמצאה תקיעות עם כיסוי נתונים מספק',
   'two-week-loss-faster-than-1kg-per-week': 'שני שבועות של ירידה מהירה מהמנחה',
   'recent-loss-faster-than-1kg-per-week': 'השבוע האחרון מהיר מהמנחה',
@@ -36,17 +37,17 @@ const reasonText: Record<string, string> = {
 };
 
 export function CoachScreen() {
-  const { repo, refresh, setAnnounce } = useForm();
-  const today = todayInTimeZone('Asia/Jerusalem');
+  const { repo, refresh, setAnnounce, timezone } = useForm();
+  const today = todayInTimeZone(timezone);
   const [confirming, setConfirming] = useState(false);
   const [effectiveDate, setEffectiveDate] = useState(today);
   const [proposedKcal, setProposedKcal] = useState('');
   const [error, setError] = useState('');
   const state = useAsync(async () => {
     const [plans, goal, measurements, diaryDays, foodEntries, checkins, reviews] = await Promise.all([
-      repo.listPlans(), repo.getActiveGoal(), repo.listMeasurements(), repo.listDiaryDays(), repo.listFoodEntries(), repo.listCheckins(), repo.listCoachReviews()
+      repo.listPlans(), repo.getCurrentGoal(), repo.listMeasurements(), repo.listDiaryDays(), repo.listFoodEntries(), repo.listCheckins(), repo.listCoachReviews()
     ]);
-    const result = reviewCoach({ asOfDate: today, timezone: 'Asia/Jerusalem', plans, goal, measurements, diaryDays, foodEntries, checkins });
+    const result = reviewCoach({ asOfDate: today, timezone, plans, goal, measurements, diaryDays, foodEntries, checkins, safety: { paused: goal?.status === 'paused' } });
     return { result, plans, reviews };
   }, []);
   if (state.loading) return <PageHeader kicker="FORM / COACH" title="סקירה והמלצות" subtitle="מחשב ראיות…" />;

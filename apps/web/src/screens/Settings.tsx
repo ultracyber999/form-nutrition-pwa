@@ -1,26 +1,26 @@
 import { useState } from 'react';
 import type { Goal, Profile } from '@form/contracts';
-import { deriveCarbTargetG, validatePlanTargets } from '@form/domain';
+import { deriveCarbTargetG, todayInTimeZone, validatePlanTargets } from '@form/domain';
 import { useForm } from '../context';
 import { useAsync } from '../useAsync';
 import { Card, PageHeader } from '../components/common';
 import { csvEscape, downloadText, fmt, nullableNumber } from '../utils';
 
 export function SettingsScreen() {
-  const { repo, refresh, theme, setTheme, setAnnounce } = useForm();
+  const { repo, refresh, theme, setTheme, setAnnounce, timezone } = useForm();
   const [error, setError] = useState('');
   const [notice, setNotice] = useState('');
-  const [newPlan, setNewPlan] = useState({ effectiveFrom: new Date().toISOString().slice(0, 10), kcal: '', proteinG: '', fatG: '', fiberG: '' });
+  const [newPlan, setNewPlan] = useState({ effectiveFrom: todayInTimeZone(timezone), kcal: '', proteinG: '', fatG: '', fiberG: '' });
   const [importText, setImportText] = useState('');
   const [legacyText, setLegacyText] = useState('');
   const [preview, setPreview] = useState<string>('');
   const state = useAsync(async () => {
-    const [profile, goal, plans, counts, entries] = await Promise.all([repo.getProfile(), repo.getActiveGoal(), repo.listPlans(), repo.tableCounts(), repo.listFoodEntries()]);
-    return { profile, goal, plans, counts, entries };
+    const [profile, goal, plans, counts, entries, preImportBackup] = await Promise.all([repo.getProfile(), repo.getCurrentGoal(), repo.listPlans(), repo.tableCounts(), repo.listFoodEntries(), repo.getLastPreImportBackup()]);
+    return { profile, goal, plans, counts, entries, preImportBackup };
   }, []);
   if (state.loading) return <PageHeader kicker="FORM / SETTINGS" title="הגדרות ונתונים" subtitle="טוען נתונים…" />;
   if (state.error || !state.data) return <div className="notice danger" role="alert">{state.error ?? 'שגיאת טעינה'}</div>;
-  const { profile, goal, plans, counts, entries } = state.data;
+  const { profile, goal, plans, counts, entries, preImportBackup } = state.data;
 
   async function exportJson() {
     const bundle = await repo.exportBundle();
@@ -38,7 +38,8 @@ export function SettingsScreen() {
     const summary: Array<Array<string | number>> = [['date','entries','kcal','protein_g','carbs_g','fat_g','fiber_g','unknown_kcal_entries']];
     for (const [date, dayEntries] of [...byDate.entries()].sort()) {
       const sum = (key: 'kcal' | 'proteinG' | 'carbG' | 'fatG' | 'fiberG') => dayEntries.reduce((acc, entry) => acc + (entry.nutrientSnapshot[key] ?? 0), 0);
-      summary.push([date, dayEntries.length, sum('kcal'), sum('proteinG'), sum('carbG'), sum('fatG'), sum('fiberG'), dayEntries.filter((entry) => entry.nutrientSnapshot.kcal === null).length]);
+      const unknownKcal = dayEntries.filter((entry) => entry.nutrientSnapshot.kcal === null).length;
+      summary.push([date, dayEntries.length, `${sum('kcal')}${unknownKcal ? '+' : ''}`, sum('proteinG'), sum('carbG'), sum('fatG'), sum('fiberG'), unknownKcal]);
     }
     downloadText(`FORM-food-summary-${stamp}.csv`, summary.map((row) => row.map(csvEscape).join(',')).join('\n'), 'text/csv;charset=utf-8');
     setNotice('נוצרו קובצי CSV מפורט ומסכם');
@@ -66,10 +67,22 @@ export function SettingsScreen() {
       const result = kind === 'export' ? await repo.importBundle(text, mode) : await repo.importLegacy(text, mode);
       downloadText(`FORM-pre-import-backup-${Date.now()}.json`, JSON.stringify(result.backup, null, 2));
       refresh();
-      setNotice('הייבוא הושלם. גיבוי קודם הורד אוטומטית.');
+      setNotice('הייבוא הושלם. גיבוי קודם נשמר מקומית והורדה נוספת נוצרה.');
       setAnnounce('הייבוא הושלם');
     } catch (cause) {
       setError(cause instanceof Error ? cause.message : 'הייבוא נכשל');
+    }
+  }
+
+  async function restorePreImportBackup() {
+    setError(''); setNotice('');
+    try {
+      if (!preImportBackup) throw new Error('לא נמצא גיבוי קודם');
+      await repo.importBundle(JSON.stringify(preImportBackup), 'replace-all');
+      refresh();
+      setNotice('שוחזר הגיבוי המקומי האחרון שלפני הייבוא');
+    } catch (cause) {
+      setError(cause instanceof Error ? cause.message : 'השחזור נכשל');
     }
   }
 
@@ -128,6 +141,7 @@ export function SettingsScreen() {
             <h2>ייבוא ושחזור</h2>
             <FilePicker label="קובץ FORM JSON" onText={setImportText} />
             <div className="button-row"><button className="secondary-button" type="button" onClick={() => void previewFile('export')}>בדיקת ייבוא</button><button className="primary-button" type="button" disabled={!importText} onClick={() => void applyImport('export', 'merge-skip-duplicates')}>מיזוג בטוח</button><button className="danger-button" type="button" disabled={!importText} onClick={() => void applyImport('export', 'replace-all')}>החלפה מלאה</button></div>
+            {preImportBackup ? <p className="notice">קיים גיבוי מקומי אחרון מלפני ייבוא. <button className="secondary-button" type="button" onClick={() => void restorePreImportBackup()}>שחזור גיבוי זה</button></p> : null}
             <h3>ייבוא FORM 2.0</h3>
             <FilePicker label="קובץ גיבוי legacy" onText={setLegacyText} />
             <div className="button-row"><button className="secondary-button" type="button" onClick={() => void previewFile('legacy')}>בדיקת legacy</button><button className="primary-button" type="button" disabled={!legacyText} onClick={() => void applyImport('legacy', 'merge-skip-duplicates')}>ייבוא מוזג</button></div>

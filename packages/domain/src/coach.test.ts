@@ -153,6 +153,17 @@ describe('deterministic coach policy', () => {
     const changed = reviewCoach(input);
     expect(changed.inputFingerprint).not.toBe(first.inputFingerprint);
   });
+
+  it('major activity shift requires review instead of calorie reduction', () => {
+    const input = fixture([105, 104.9, 104.8]);
+    const recentDates = new Set(dates.slice(-7));
+    input.checkins = input.checkins.map((row) => recentDates.has(row.localDate) ? { ...row, steps: 5000 } : row);
+    const result = reviewCoach(input);
+    expect(result.status).toBe('review-logging-and-context');
+    expect(result.reasonCodes).toContain('major-activity-shift-requires-review');
+    expect(result.suggestion.kind).toBe('none');
+  });
+
 });
 
 describe('coach branch safety hardening', () => {

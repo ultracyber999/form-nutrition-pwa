@@ -158,3 +158,57 @@ describe('IndexedDB repository vertical slice', () => {
     await expect(repo.markDayComplete('2026-11-25')).rejects.toMatchObject({ code: 'empty-day' });
   });
 });
+
+describe('RC4 corrective integrity regressions', () => {
+  it('F02: ordinary historical plan revisions are rejected; explicit correction workflow is audited', async () => {
+    const repo = repository();
+    await onboarded(repo);
+    const base = { effectiveFrom: '2026-11-20', kcal: 2200, proteinG: 150, fatG: 70, fiberG: 30, steps: 8000, waterMl: 2500, sleepMinutesMin: 420, sleepMinutesMax: 540, strengthSessionsPerWeek: 4, reason: 'ordinary edit', policyVersion: 'form-plan-v1' };
+    await expect(repo.createPlanRevision(base)).rejects.toMatchObject({ code: 'historical-plan-revision' });
+    await expect(repo.createPlanRevision(base, { allowHistoricalCorrection: true })).rejects.toMatchObject({ code: 'historical-correction-reason-required' });
+    const corrected = await repo.createPlanRevision({ ...base, reason: 'historical-correction: documented test correction' }, { allowHistoricalCorrection: true });
+    expect(corrected.effectiveFrom).toBe('2026-11-20');
+    await expect(repo.createPlanRevision({ ...base, effectiveFrom: corrected.effectiveFrom, reason: 'historical-correction: duplicate check' }, { allowHistoricalCorrection: true })).rejects.toMatchObject({ code: 'duplicate-plan-date' });
+  });
+
+  it('F03: invalid negative, fractional, out-of-range and malformed writes are rejected before persistence', async () => {
+    const repo = repository();
+    await onboarded(repo);
+    const measurement = { type: 'weight' as const, value: -1, unit: 'kg' as const, measuredAt: '2026-11-25T08:00:00.000Z', localDate: '2026-11-25', source: 'manual' as const, externalSampleId: null };
+    await expect(repo.saveMeasurement(measurement)).rejects.toMatchObject({ code: 'invalid-measurement' });
+    await expect(repo.saveCheckin({ localDate: '2026-11-25', steps: 100.5, waterMl: null, sleepMinutes: null, trainingStatus: null, hunger1to5: null, energy1to5: null, notes: null })).rejects.toMatchObject({ code: 'invalid-checkin' });
+    await expect(repo.addManualEntry({ localDate: '2026-11-25', mealType: 'other', label: 'bad', nutrients: { kcal: -1, proteinG: null, carbG: null, fatG: null, fiberG: null } })).rejects.toMatchObject({ code: 'invalid-entry' });
+    expect((await repo.listMeasurements()).length).toBe(0);
+    expect((await repo.listCheckins()).length).toBe(0);
+    expect((await repo.listFoodEntries()).length).toBe(0);
+  });
+
+  it('F04: check-in, measurements and outbox commit atomically under failure injection', async () => {
+    const repo = repository();
+    await onboarded(repo);
+    const originalAdd = repo.db.outbox.add.bind(repo.db.outbox);
+    repo.db.outbox.add = (async () => Promise.reject(new Error('injected interruption'))) as unknown as typeof repo.db.outbox.add;
+    await expect(repo.saveDailyCheckinBundle(
+      { localDate: '2026-11-25', steps: 8000, waterMl: 2000, sleepMinutes: 420, trainingStatus: null, hunger1to5: 2, energy1to5: 4, notes: null },
+      [{ type: 'weight', value: 90, unit: 'kg', measuredAt: '2026-11-25T08:00:00.000Z', localDate: '2026-11-25', source: 'manual', externalSampleId: null }]
+    )).rejects.toThrow('injected interruption');
+    repo.db.outbox.add = originalAdd;
+    expect((await repo.listMeasurements()).length).toBe(0);
+    expect((await repo.listCheckins()).length).toBe(0);
+    expect(await repo.db.outbox.count()).toBe(3); // onboarding operations only
+  });
+
+  it('F07/F08: configured timezone reaches diary rows and replace-import retains recoverable backup metadata', async () => {
+    const repo = repository();
+    await onboarded(repo);
+    repo.setTimeZone('America/New_York');
+    await repo.addManualEntry({ localDate: '2026-11-25', mealType: 'other', label: 'zone test', nutrients: { kcal: 100, proteinG: null, carbG: null, fatG: null, fiberG: null } });
+    expect((await repo.diaryDay('2026-11-25'))?.zone).toBe('America/New_York');
+    const exported = await repo.exportBundle();
+    const changed = { ...exported, foodEntries: [], exportedAt: '2026-11-25T09:00:00.000Z' };
+    await repo.importBundle(JSON.stringify(changed), 'replace-all');
+    const backup = await repo.getLastPreImportBackup();
+    expect(backup?.foodEntries.length).toBe(1);
+    expect((await repo.listFoodEntries()).length).toBe(0);
+  });
+});

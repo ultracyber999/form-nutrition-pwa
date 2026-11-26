@@ -8,9 +8,9 @@ import { TrendChart } from '../components/TrendChart';
 import { fmt, mealLabels } from '../utils';
 
 export function TodayScreen() {
-  const { repo } = useForm();
+  const { repo, timezone } = useForm();
   const navigate = useNavigate();
-  const today = todayInTimeZone('Asia/Jerusalem');
+  const today = todayInTimeZone(timezone);
   const [date, setDate] = useState(today);
   const state = useAsync(async () => {
     const [entries, diary, plans, measurements, checkins, goal] = await Promise.all([
@@ -55,7 +55,7 @@ export function TodayScreen() {
             </div>
           ) : <EmptyState title="לא נמצאה תכנית פעילה לתאריך זה" />}
           {totals.unknownCounts.kcal || totals.unknownCounts.proteinG || totals.unknownCounts.carbG || totals.unknownCounts.fatG || totals.unknownCounts.fiberG ? <p className="notice warn">חלק מהערכים אינם ידועים. מוצג סיכום חלקי, לא אפס מומצא.</p> : null}
-          <div className="split" style={{ marginBlockStart: 14 }}><span className="card-muted">נצרכו <bdi className="num">{fmt(totals.totals.kcal)} קל׳</bdi></span><div className="button-row hero-actions"><Link className="primary-button" to={`/nutrition/${date}?add=1`}>+ הוספת אוכל</Link><Link className="secondary-button" to={`/check-in/${date}`}>צ׳ק-אין</Link></div></div>
+          <div className="split" style={{ marginBlockStart: 14 }}><span className="card-muted">נצרכו <bdi className="num">{fmt(totals.totals.kcal)}{totals.unknownCounts.kcal > 0 ? '+' : ''} קל׳</bdi></span><div className="button-row hero-actions"><Link className="primary-button" to={`/nutrition/${date}?add=1`}>+ הוספת אוכל</Link><Link className="secondary-button" to={`/check-in/${date}`}>צ׳ק-אין</Link></div></div>
         </Card>
         <Card className="weight-card">
           <div className="split"><h2>מגמת משקל</h2><span className="pill">7 ימים</span></div>

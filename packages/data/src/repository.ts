@@ -13,8 +13,8 @@ import type {
   Profile,
   Recipe
 } from '@form/contracts';
-import { exportBundleSchema } from '@form/contracts';
-import { calculateConsumed, deriveCarbTargetG, validatePlanTargets } from '@form/domain';
+import { exportBundleSchema, foodEntrySchema, measurementSchema, dailyCheckinSchema, nutritionPlanSchema, profileSchema, goalSchema, foodVersionSchema, mealTemplateSchema, recipeSchema, coachReviewSchema } from '@form/contracts';
+import { calculateConsumed, compareDates, deriveCarbTargetG, todayInTimeZone, validatePlanTargets } from '@form/domain';
 import { builtinFoods } from '@form/test-data';
 import type { Table } from 'dexie';
 import { FormDatabase, allEntityTables, type OutboxOperation } from './db';
@@ -66,11 +66,30 @@ async function inTransaction<T>(db: FormDatabase, tables: Table[], work: () => P
   return db.transaction('rw', tables, work);
 }
 
+function parseRow<T>(schema: { safeParse: (value: unknown) => { success: boolean; error?: { issues: Array<{ path: PropertyKey[]; message: string }> }; data?: T } }, row: T, code: string): T {
+  const result = schema.safeParse(row);
+  if (!result.success) {
+    const details = result.error?.issues.map((issue) => `${issue.path.join('.')}: ${issue.message}`).join('; ') ?? 'invalid record';
+    throw new RepositoryError(code, details);
+  }
+  return row;
+}
+
 export class FormRepository {
+  private timezone = 'Asia/Jerusalem';
+
   constructor(
     readonly db: FormDatabase = new FormDatabase(),
     private readonly clock: Clock = defaultClock
   ) {}
+
+  setTimeZone(timezone: string): void {
+    this.timezone = timezone;
+  }
+
+  getTimeZone(): string {
+    return this.timezone;
+  }
 
   private now(): string {
     return iso(this.clock());
@@ -111,6 +130,9 @@ export class FormRepository {
     if (validationErrors.length) throw new RepositoryError('invalid-plan', validationErrors.join('; '));
     const profile: Profile = { ...input.profile, id: newUuid(), createdAt: now, updatedAt: now };
     const goal: Goal = { ...input.goal, status: input.goal.status ?? 'active', id: newUuid(), createdAt: now, updatedAt: now };
+    parseRow(profileSchema, profile, 'invalid-profile');
+    parseRow(goalSchema, goal, 'invalid-goal');
+    parseRow(nutritionPlanSchema, plan, 'invalid-plan');
     await inTransaction(this.db, [this.db.profiles, this.db.goals, this.db.nutritionPlans, this.db.outbox], async () => {
       if ((await this.db.nutritionPlans.where('effectiveFrom').equals(plan.effectiveFrom).count()) > 0) {
         throw new RepositoryError('duplicate-plan-date', 'A plan already exists for this effective date');
@@ -133,11 +155,15 @@ export class FormRepository {
     return (await this.db.goals.where('status').equals('active').first()) ?? null;
   }
 
+  async getCurrentGoal(): Promise<Goal | null> {
+    return (await this.db.goals.orderBy('effectiveFrom').reverse().first()) ?? null;
+  }
+
   async listPlans(): Promise<NutritionPlan[]> {
     return this.db.nutritionPlans.orderBy('effectiveFrom').toArray();
   }
 
-  async createPlanRevision(input: Omit<NutritionPlan, 'id' | 'createdAt' | 'carbG'> & { carbG?: number }): Promise<NutritionPlan> {
+  async createPlanRevision(input: Omit<NutritionPlan, 'id' | 'createdAt' | 'carbG'> & { carbG?: number }, options: { allowHistoricalCorrection?: boolean } = {}): Promise<NutritionPlan> {
     const now = this.now();
     const plan: NutritionPlan = {
       ...input,
@@ -147,6 +173,16 @@ export class FormRepository {
     };
     const validationErrors = validatePlanTargets(plan);
     if (validationErrors.length) throw new RepositoryError('invalid-plan', validationErrors.join('; '));
+    parseRow(nutritionPlanSchema, plan, 'invalid-plan');
+    const profile = await this.getProfile();
+    const zone = profile?.timezone ?? this.timezone;
+    const today = todayInTimeZone(zone, this.clock());
+    if (compareDates(plan.effectiveFrom, today) < 0 && !options.allowHistoricalCorrection) {
+      throw new RepositoryError('historical-plan-revision', 'Historical plan corrections require the explicit correction workflow');
+    }
+    if (options.allowHistoricalCorrection && !plan.reason?.startsWith('historical-correction:')) {
+      throw new RepositoryError('historical-correction-reason-required', 'Historical corrections require a reason beginning with historical-correction:');
+    }
     await inTransaction(this.db, [this.db.nutritionPlans, this.db.outbox], async () => {
       if ((await this.db.nutritionPlans.where('effectiveFrom').equals(plan.effectiveFrom).count()) > 0) {
         throw new RepositoryError('duplicate-plan-date', 'A plan already exists for this effective date');
@@ -195,6 +231,7 @@ export class FormRepository {
       updatedAt: now
     };
     if (!food.name) throw new RepositoryError('invalid-food', 'Food name is required');
+    parseRow(foodVersionSchema, food, 'invalid-food');
     await inTransaction(this.db, [this.db.foodVersions, this.db.outbox], async () => {
       await this.db.foodVersions.add(food);
       await this.queueOutbox({ entityType: 'foodVersion', entityId: food.id, operation: 'create', baseVersion: 0, schemaVersion: 1, payloadJson: JSON.stringify(food) });
@@ -222,7 +259,7 @@ export class FormRepository {
   }
 
   private async invalidateDayAfterFoodMutation(localDate: string, zone: string): Promise<void> {
-    const row = await this.diaryRow(localDate, zone);
+    const row = await this.diaryRow(localDate, zone ?? this.timezone);
     const activeCount = await this.db.foodEntries.where('localDate').equals(localDate).filter((entry) => entry.deletedAt === null).count();
     const next: DiaryDay = {
       ...row,
@@ -234,7 +271,7 @@ export class FormRepository {
     await this.db.diaryDays.put(next);
   }
 
-  async addFoodEntry(input: AddFoodEntryInput, zone = 'Asia/Jerusalem'): Promise<FoodEntry> {
+  async addFoodEntry(input: AddFoodEntryInput, zone?: string): Promise<FoodEntry> {
     const food = await this.db.foodVersions.get(input.foodVersionId);
     if (!food) throw new RepositoryError('food-not-found', 'Selected food no longer exists');
     const basis = input.unit === 'g' ? 'mass-grams' : 'serving-count';
@@ -257,15 +294,16 @@ export class FormRepository {
       deletedAt: null,
       version: 1
     };
+    parseRow(foodEntrySchema, entry, 'invalid-entry');
     await inTransaction(this.db, [this.db.foodEntries, this.db.diaryDays, this.db.outbox], async () => {
       await this.db.foodEntries.add(entry);
-      await this.invalidateDayAfterFoodMutation(input.localDate, zone);
+      await this.invalidateDayAfterFoodMutation(input.localDate, zone ?? this.timezone);
       await this.queueOutbox({ entityType: 'foodEntry', entityId: entry.id, operation: 'create', baseVersion: 0, schemaVersion: 1, payloadJson: JSON.stringify(entry) });
     });
     return entry;
   }
 
-  async addManualEntry(input: ManualEntryInput, zone = 'Asia/Jerusalem'): Promise<FoodEntry> {
+  async addManualEntry(input: ManualEntryInput, zone?: string): Promise<FoodEntry> {
     const now = this.now();
     const entry: FoodEntry = {
       id: newUuid(),
@@ -285,9 +323,10 @@ export class FormRepository {
       version: 1
     };
     if (!entry.labelSnapshot) throw new RepositoryError('invalid-entry', 'Manual entry label is required');
+    parseRow(foodEntrySchema, entry, 'invalid-entry');
     await inTransaction(this.db, [this.db.foodEntries, this.db.diaryDays, this.db.outbox], async () => {
       await this.db.foodEntries.add(entry);
-      await this.invalidateDayAfterFoodMutation(input.localDate, zone);
+      await this.invalidateDayAfterFoodMutation(input.localDate, zone ?? this.timezone);
       await this.queueOutbox({ entityType: 'foodEntry', entityId: entry.id, operation: 'create', baseVersion: 0, schemaVersion: 1, payloadJson: JSON.stringify(entry) });
     });
     return entry;
@@ -309,19 +348,21 @@ export class FormRepository {
     const existing = await this.getProfile();
     if (!existing) throw new RepositoryError('profile-not-found', 'Profile not found');
     const next = { ...existing, ...patch, updatedAt: this.now() };
+    parseRow(profileSchema, next, 'invalid-profile');
     await this.db.profiles.put(next);
     return next;
   }
 
   async updateGoal(patch: Partial<Pick<Goal, 'type' | 'baselineKg' | 'targetKg' | 'status'>>): Promise<Goal> {
-    const existing = await this.getActiveGoal();
+    const existing = await this.getCurrentGoal();
     if (!existing) throw new RepositoryError('goal-not-found', 'Goal not found');
     const next = { ...existing, ...patch, updatedAt: this.now() };
+    parseRow(goalSchema, next, 'invalid-goal');
     await this.db.goals.put(next);
     return next;
   }
 
-  async updateFoodEntry(id: string, patch: { quantity?: number; mealType?: FoodEntry['mealType']; localDate?: string }, zone = 'Asia/Jerusalem'): Promise<FoodEntry> {
+  async updateFoodEntry(id: string, patch: { quantity?: number; mealType?: FoodEntry['mealType']; localDate?: string }, zone?: string): Promise<FoodEntry> {
     const result = await inTransaction(this.db, [this.db.foodEntries, this.db.diaryDays, this.db.foodVersions, this.db.outbox], async () => {
       const existing = await this.db.foodEntries.get(id);
       if (!existing || existing.deletedAt !== null) throw new RepositoryError('entry-not-found', 'Food entry not found');
@@ -340,40 +381,41 @@ export class FormRepository {
       } else if (patch.quantity !== undefined && existing.basis === 'consumed-total') {
         next.quantity = 1;
       }
+      parseRow(foodEntrySchema, next, 'invalid-entry');
       await this.db.foodEntries.put(next);
-      await this.invalidateDayAfterFoodMutation(existing.localDate, zone);
-      if (next.localDate !== existing.localDate) await this.invalidateDayAfterFoodMutation(next.localDate, zone);
+      await this.invalidateDayAfterFoodMutation(existing.localDate, zone ?? this.timezone);
+      if (next.localDate !== existing.localDate) await this.invalidateDayAfterFoodMutation(next.localDate, zone ?? this.timezone);
       await this.queueOutbox({ entityType: 'foodEntry', entityId: id, operation: 'update', baseVersion: existing.version, schemaVersion: 1, payloadJson: JSON.stringify(next) });
       return next;
     });
     return result;
   }
 
-  async deleteFoodEntry(id: string, zone = 'Asia/Jerusalem'): Promise<void> {
+  async deleteFoodEntry(id: string, zone?: string): Promise<void> {
     await inTransaction(this.db, [this.db.foodEntries, this.db.diaryDays, this.db.outbox], async () => {
       const existing = await this.db.foodEntries.get(id);
       if (!existing || existing.deletedAt !== null) throw new RepositoryError('entry-not-found', 'Food entry not found');
       const next = { ...existing, deletedAt: this.now(), updatedAt: this.now(), version: existing.version + 1 };
       await this.db.foodEntries.put(next);
-      await this.invalidateDayAfterFoodMutation(existing.localDate, zone);
+      await this.invalidateDayAfterFoodMutation(existing.localDate, zone ?? this.timezone);
       await this.queueOutbox({ entityType: 'foodEntry', entityId: id, operation: 'delete', baseVersion: existing.version, schemaVersion: 1, payloadJson: JSON.stringify(next) });
     });
   }
 
-  async undoDeleteFoodEntry(id: string, zone = 'Asia/Jerusalem'): Promise<void> {
+  async undoDeleteFoodEntry(id: string, zone?: string): Promise<void> {
     await inTransaction(this.db, [this.db.foodEntries, this.db.diaryDays, this.db.outbox], async () => {
       const existing = await this.db.foodEntries.get(id);
       if (!existing || existing.deletedAt === null) throw new RepositoryError('entry-not-deleted', 'Food entry is not deleted');
       const next = { ...existing, deletedAt: null, updatedAt: this.now(), version: existing.version + 1 };
       await this.db.foodEntries.put(next);
-      await this.invalidateDayAfterFoodMutation(existing.localDate, zone);
+      await this.invalidateDayAfterFoodMutation(existing.localDate, zone ?? this.timezone);
       await this.queueOutbox({ entityType: 'foodEntry', entityId: id, operation: 'update', baseVersion: existing.version, schemaVersion: 1, payloadJson: JSON.stringify(next) });
     });
   }
 
-  async markDayComplete(localDate: string, zone = 'Asia/Jerusalem'): Promise<DiaryDay> {
+  async markDayComplete(localDate: string, zone?: string): Promise<DiaryDay> {
     const result = await inTransaction(this.db, [this.db.diaryDays, this.db.foodEntries, this.db.outbox], async () => {
-      const row = await this.diaryRow(localDate, zone);
+      const row = await this.diaryRow(localDate, zone ?? this.timezone);
       const count = await this.db.foodEntries.where('localDate').equals(localDate).filter((entry) => entry.deletedAt === null).count();
       if (count === 0) throw new RepositoryError('empty-day', 'An empty day cannot be marked complete');
       const next: DiaryDay = {
@@ -405,11 +447,16 @@ export class FormRepository {
       deletedAt: null,
       version: 1
     };
+    parseRow(measurementSchema, row, 'invalid-measurement');
     await inTransaction(this.db, [this.db.measurements, this.db.outbox], async () => {
       if (row.preferred) {
         const sameDay = await this.db.measurements.where('[type+localDate]').equals([row.type, row.localDate]).toArray();
         for (const existing of sameDay) {
-          if (existing.preferred) await this.db.measurements.update(existing.id, { preferred: false, updatedAt: now, version: existing.version + 1 });
+          if (existing.preferred) {
+            const demoted = { ...existing, preferred: false, updatedAt: now, version: existing.version + 1 };
+            await this.db.measurements.put(demoted);
+            await this.queueOutbox({ entityType: 'measurement', entityId: existing.id, operation: 'update', baseVersion: existing.version, schemaVersion: 1, payloadJson: JSON.stringify(demoted) });
+          }
         }
       }
       await this.db.measurements.add(row);
@@ -428,11 +475,49 @@ export class FormRepository {
     const row: DailyCheckin = existing
       ? { ...existing, ...input, updatedAt: now, version: existing.version + 1 }
       : { ...input, id: newUuid(), createdAt: now, updatedAt: now, version: 1 };
+    parseRow(dailyCheckinSchema, row, 'invalid-checkin');
     await inTransaction(this.db, [this.db.dailyCheckins, this.db.outbox], async () => {
       await this.db.dailyCheckins.put(row);
       await this.queueOutbox({ entityType: 'dailyCheckin', entityId: row.id, operation: existing ? 'update' : 'create', baseVersion: existing?.version ?? 0, schemaVersion: 1, payloadJson: JSON.stringify(row) });
     });
     return row;
+  }
+
+  async saveDailyCheckinBundle(input: Omit<DailyCheckin, 'id' | 'createdAt' | 'updatedAt' | 'version'>, measurements: Array<Omit<Measurement, 'id' | 'createdAt' | 'updatedAt' | 'deletedAt' | 'version' | 'preferred'> & { preferred?: boolean }> = []): Promise<{ checkin: DailyCheckin; measurements: Measurement[] }> {
+    const now = this.now();
+    const existing = await this.db.dailyCheckins.where('localDate').equals(input.localDate).first();
+    const checkin: DailyCheckin = existing
+      ? { ...existing, ...input, updatedAt: now, version: existing.version + 1 }
+      : { ...input, id: newUuid(), createdAt: now, updatedAt: now, version: 1 };
+    parseRow(dailyCheckinSchema, checkin, 'invalid-checkin');
+    const rows: Measurement[] = measurements.map((measurement) => parseRow(measurementSchema, {
+      ...measurement,
+      id: newUuid(),
+      preferred: measurement.preferred ?? true,
+      createdAt: now,
+      updatedAt: now,
+      deletedAt: null,
+      version: 1
+    }, 'invalid-measurement'));
+    await inTransaction(this.db, [this.db.dailyCheckins, this.db.measurements, this.db.outbox], async () => {
+      for (const row of rows) {
+        if (row.preferred) {
+          const sameDay = await this.db.measurements.where('[type+localDate]').equals([row.type, row.localDate]).toArray();
+          for (const prior of sameDay) {
+            if (prior.preferred) {
+              const demoted = { ...prior, preferred: false, updatedAt: now, version: prior.version + 1 };
+              await this.db.measurements.put(demoted);
+              await this.queueOutbox({ entityType: 'measurement', entityId: prior.id, operation: 'update', baseVersion: prior.version, schemaVersion: 1, payloadJson: JSON.stringify(demoted) });
+            }
+          }
+        }
+        await this.db.measurements.add(row);
+        await this.queueOutbox({ entityType: 'measurement', entityId: row.id, operation: 'create', baseVersion: 0, schemaVersion: 1, payloadJson: JSON.stringify(row) });
+      }
+      await this.db.dailyCheckins.put(checkin);
+      await this.queueOutbox({ entityType: 'dailyCheckin', entityId: checkin.id, operation: existing ? 'update' : 'create', baseVersion: existing?.version ?? 0, schemaVersion: 1, payloadJson: JSON.stringify(checkin) });
+    });
+    return { checkin, measurements: rows };
   }
 
   async checkinForDate(localDate: string): Promise<DailyCheckin | null> {
@@ -466,6 +551,7 @@ export class FormRepository {
       version: 1
     };
     if (!template.name) throw new RepositoryError('invalid-template', 'Template name is required');
+    parseRow(mealTemplateSchema, template, 'invalid-template');
     await inTransaction(this.db, [this.db.mealTemplates, this.db.outbox], async () => {
       await this.db.mealTemplates.add(template);
       await this.queueOutbox({ entityType: 'mealTemplate', entityId: template.id, operation: 'create', baseVersion: 0, schemaVersion: 1, payloadJson: JSON.stringify(template) });
@@ -477,7 +563,7 @@ export class FormRepository {
     return (await this.db.mealTemplates.orderBy('name').toArray()).filter((template) => template.deletedAt === null);
   }
 
-  async addTemplateToDiary(templateId: string, localDate: string, mealType: FoodEntry['mealType'], zone = 'Asia/Jerusalem'): Promise<FoodEntry[]> {
+  async addTemplateToDiary(templateId: string, localDate: string, mealType: FoodEntry['mealType'], zone?: string): Promise<FoodEntry[]> {
     const template = await this.db.mealTemplates.get(templateId);
     if (!template || template.deletedAt !== null) throw new RepositoryError('template-not-found', 'Template not found');
     const now = this.now();
@@ -503,7 +589,7 @@ export class FormRepository {
         await this.db.foodEntries.add(entry);
         await this.queueOutbox({ entityType: 'foodEntry', entityId: entry.id, operation: 'create', baseVersion: 0, schemaVersion: 1, payloadJson: JSON.stringify(entry) });
       }
-      await this.invalidateDayAfterFoodMutation(localDate, zone);
+      await this.invalidateDayAfterFoodMutation(localDate, zone ?? this.timezone);
     });
     return entries;
   }
@@ -511,6 +597,7 @@ export class FormRepository {
   async saveRecipe(recipe: Omit<Recipe, 'id' | 'createdAt' | 'updatedAt' | 'deletedAt' | 'version'>): Promise<Recipe> {
     const now = this.now();
     const row: Recipe = { ...recipe, id: newUuid(), createdAt: now, updatedAt: now, deletedAt: null, version: 1 };
+    parseRow(recipeSchema, row, 'invalid-recipe');
     await inTransaction(this.db, [this.db.recipes, this.db.outbox], async () => {
       await this.db.recipes.add(row);
       await this.queueOutbox({ entityType: 'recipe', entityId: row.id, operation: 'create', baseVersion: 0, schemaVersion: 1, payloadJson: JSON.stringify(row) });
@@ -522,7 +609,7 @@ export class FormRepository {
     return (await this.db.recipes.orderBy('name').toArray()).filter((recipe) => recipe.deletedAt === null);
   }
 
-  async addRecipePortionToDiary(recipeId: string, localDate: string, mealType: FoodEntry['mealType'], portion: { grams?: number; servings?: number }, zone = 'Asia/Jerusalem'): Promise<FoodEntry> {
+  async addRecipePortionToDiary(recipeId: string, localDate: string, mealType: FoodEntry['mealType'], portion: { grams?: number; servings?: number }, zone?: string): Promise<FoodEntry> {
     const { recipePortionNutrients } = await import('@form/domain');
     const recipe = await this.db.recipes.get(recipeId);
     if (!recipe || recipe.deletedAt !== null) throw new RepositoryError('recipe-not-found', 'Recipe not found');
@@ -549,13 +636,14 @@ export class FormRepository {
     };
     await inTransaction(this.db, [this.db.foodEntries, this.db.diaryDays, this.db.outbox], async () => {
       await this.db.foodEntries.add(entry);
-      await this.invalidateDayAfterFoodMutation(localDate, zone);
+      await this.invalidateDayAfterFoodMutation(localDate, zone ?? this.timezone);
       await this.queueOutbox({ entityType: 'foodEntry', entityId: entry.id, operation: 'create', baseVersion: 0, schemaVersion: 1, payloadJson: JSON.stringify(entry) });
     });
     return entry;
   }
 
   async saveCoachReview(review: CoachReview): Promise<void> {
+    parseRow(coachReviewSchema, review, 'invalid-coach-review');
     await inTransaction(this.db, [this.db.coachReviews, this.db.outbox], async () => {
       await this.db.coachReviews.add(review);
       await this.queueOutbox({ entityType: 'coachReview', entityId: review.id, operation: 'create', baseVersion: 0, schemaVersion: 1, payloadJson: JSON.stringify(review) });
@@ -569,7 +657,7 @@ export class FormRepository {
   async exportBundle(): Promise<ExportBundle> {
     const [profile, goal, nutritionPlans, foodVersions, foodEntries, diaryDays, measurements, dailyCheckins, mealTemplates, recipes, coachReviews] = await Promise.all([
       this.getProfile(),
-      this.getActiveGoal(),
+      this.getCurrentGoal(),
       this.db.nutritionPlans.toArray(),
       this.db.foodVersions.toArray(),
       this.db.foodEntries.toArray(),
@@ -580,7 +668,7 @@ export class FormRepository {
       this.db.recipes.toArray(),
       this.db.coachReviews.toArray()
     ]);
-    return {
+    const bundle: ExportBundle = {
       format: 'form-export',
       schemaVersion: 1,
       exportedAt: this.now(),
@@ -596,6 +684,7 @@ export class FormRepository {
       recipes,
       coachReviews
     };
+    return exportBundleSchema.parse(bundle);
   }
 
   async previewImport(text: string): Promise<ImportPreview> {
@@ -647,7 +736,8 @@ export class FormRepository {
     const bundle = exportBundleSchema.parse(JSON.parse(text));
     const backup = await this.exportBundle();
     const tables = allEntityTables.map((name) => this.db.table(name));
-    await inTransaction(this.db, tables, async () => {
+    await inTransaction(this.db, [...tables, this.db.meta], async () => {
+      await this.db.meta.put({ key: 'last-pre-import-backup', value: backup });
       if (mode === 'replace-all') {
         for (const table of tables) await table.clear();
       }
@@ -695,6 +785,12 @@ export class FormRepository {
     const migration = buildLegacyMigration(parseLegacyJson(text));
     const result = await this.importBundle(JSON.stringify(migration.bundle), mode);
     return { report: migration.report, backup: result.backup };
+  }
+
+  async getLastPreImportBackup(): Promise<ExportBundle | null> {
+    const row = await this.db.meta.get('last-pre-import-backup');
+    const result = exportBundleSchema.safeParse(row?.value);
+    return result.success ? result.data : null;
   }
 
   async clearLocalData(): Promise<void> {

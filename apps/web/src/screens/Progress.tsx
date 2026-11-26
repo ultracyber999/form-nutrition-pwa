@@ -7,9 +7,9 @@ import { TrendChart } from '../components/TrendChart';
 import { fmt, fmtSigned, shortDateLabel } from '../utils';
 
 export function ProgressScreen() {
-  const { repo } = useForm();
+  const { repo, timezone } = useForm();
   const [range, setRange] = useState<RangeKey>('30d');
-  const today = todayInTimeZone('Asia/Jerusalem');
+  const today = todayInTimeZone(timezone);
   const state = useAsync(async () => {
     const [measurements, entries, diaryDays, goal] = await Promise.all([repo.listMeasurements(), repo.listFoodEntries(), repo.listDiaryDays(), repo.getActiveGoal()]);
     return { measurements, entries, diaryDays, goal };

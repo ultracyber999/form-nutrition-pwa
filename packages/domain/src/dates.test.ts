@@ -23,6 +23,16 @@ describe('local calendar dates', () => {
     expect(todayInTimeZone('America/New_York', instant)).toBe('2026-11-25');
   });
 
+
+  it('uses the selected zone across DST transition instants', () => {
+    const beforeSpringForward = new Date('2026-03-08T04:30:00Z');
+    const afterSpringForward = new Date('2026-03-08T07:30:00Z');
+    expect(todayInTimeZone('America/New_York', beforeSpringForward)).toBe('2026-03-07');
+    expect(todayInTimeZone('America/New_York', afterSpringForward)).toBe('2026-03-08');
+    expect(todayInTimeZone('Pacific/Auckland', beforeSpringForward)).toBe('2026-03-08');
+    expect(todayInTimeZone('Pacific/Auckland', afterSpringForward)).toBe('2026-03-08');
+  });
+
   it('date ranges are ascending and exact length', () => {
     expect(dateRange('2026-01-07', 7)).toEqual(['2026-01-01','2026-01-02','2026-01-03','2026-01-04','2026-01-05','2026-01-06','2026-01-07']);
   });

@@ -1,23 +1,11 @@
 import { useMemo, useState } from 'react';
 import type { DailyWeightPoint } from '@form/domain';
 import { fmt, shortDateLabel } from '../utils';
+import { buildTrendGeometry } from '../trendGeometry';
 
 export function TrendChart({ points, unit, label }: { points: DailyWeightPoint[]; unit: string; label: string }) {
   const [table, setTable] = useState(false);
-  const geometry = useMemo(() => {
-    if (points.length === 0) return null;
-    const width = 620;
-    const height = 170;
-    const pad = 28;
-    const values = points.map((point) => point.valueKg);
-    const min = Math.min(...values) - 0.3;
-    const max = Math.max(...values) + 0.3;
-    const x = (index: number) => points.length === 1 ? width / 2 : pad + index * ((width - pad * 2) / (points.length - 1));
-    const y = (value: number) => height - pad - ((value - min) / Math.max(0.1, max - min)) * (height - pad * 2);
-    const path = points.map((point, index) => `${index === 0 ? 'M' : 'L'}${x(index)},${y(point.valueKg)}`).join(' ');
-    const areaPath = `${path} L${x(points.length - 1)},${height - pad} L${x(0)},${height - pad} Z`;
-    return { width, height, pad, x, y, path, areaPath, min, max };
-  }, [points]);
+  const geometry = useMemo(() => buildTrendGeometry(points), [points]);
 
   if (points.length === 0) return <div className="empty-state">אין מספיק מדידות להצגת גרף. מוצגות רק מדידות בפועל, ללא ערכים מומצאים.</div>;
   return (
@@ -35,10 +23,10 @@ export function TrendChart({ points, unit, label }: { points: DailyWeightPoint[]
           <svg className="chart-svg" viewBox={`0 0 ${geometry.width} ${geometry.height}`} role="img" aria-label={`${label}: ${points.length} נקודות, ערך אחרון ${fmt(points.at(-1)?.valueKg ?? null, 1)} ${unit}`}>
             {[0.25, 0.5, 0.75].map((ratio) => <line key={ratio} className="chart-grid" x1={geometry.pad} x2={geometry.width - geometry.pad} y1={geometry.height * ratio} y2={geometry.height * ratio} />)}
             <defs><linearGradient id="trend-fill" x1="0" x2="0" y1="0" y2="1"><stop offset="0" stopColor="var(--accent)" stopOpacity=".34" /><stop offset="1" stopColor="var(--accent)" stopOpacity="0" /></linearGradient></defs>
-            <path className="chart-area" d={geometry.areaPath} />
-            <path className="chart-line" d={geometry.path} />
-            {points.map((point, index) => <circle key={point.measurementId} className="chart-point" cx={geometry.x(index)} cy={geometry.y(point.valueKg)} r="4" />)}
-            {points.map((point, index) => index === 0 || index === points.length - 1 ? <text key={`label-${point.measurementId}`} className="chart-label" x={geometry.x(index)} y={geometry.height - 5} textAnchor="middle">{shortDateLabel(point.localDate).slice(0, 5)}</text> : null)}
+            {geometry.areaPaths.map((path) => <path key={path} className="chart-area" d={path} />)}
+            {geometry.segments.map((segment) => <path key={segment.join(' ')} className="chart-line" d={segment.join(' ')} />)}
+            {points.map((point) => <circle key={point.measurementId} className="chart-point" cx={geometry.xForDate(point.localDate)} cy={geometry.y(point.valueKg)} r="4" />)}
+            {points.map((point, index) => index === 0 || index === points.length - 1 ? <text key={`label-${point.measurementId}`} className="chart-label" x={geometry.xForDate(point.localDate)} y={geometry.height - 5} textAnchor="middle">{shortDateLabel(point.localDate).slice(0, 5)}</text> : null)}
             <text className="chart-label chart-last-value" x={geometry.width - geometry.pad} y={geometry.y(points.at(-1)?.valueKg ?? 0) - 10} textAnchor="end">{fmt(points.at(-1)?.valueKg ?? null, 1)} {unit}</text>
           </svg>
         </div>

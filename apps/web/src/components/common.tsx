@@ -55,12 +55,12 @@ export function CalorieRing({ consumed, target, incomplete }: { consumed: number
   const radius = 54;
   const circumference = 2 * Math.PI * radius;
   return (
-    <div className="ring-wrap" role="img" aria-label={remaining < 0 ? `חריגה של ${fmt(Math.abs(remaining))} קלוריות מעל יעד ${fmt(target)}` : `נותרו ${fmt(remaining)} קלוריות מתוך יעד ${fmt(target)}`}>
+    <div className="ring-wrap" role="img" aria-label={remaining < 0 ? `חריגה של ${incomplete ? 'לפחות ' : ''}${fmt(Math.abs(remaining))} קלוריות מעל יעד ${fmt(target)}${incomplete ? '; הערכה חלקית' : ''}` : incomplete ? `נותרו לכל היותר ${fmt(remaining)} קלוריות מתוך יעד ${fmt(target)}; הערכה חלקית` : `נותרו ${fmt(remaining)} קלוריות מתוך יעד ${fmt(target)}`}>
       <svg viewBox="0 0 132 132" aria-hidden>
         <circle cx="66" cy="66" r={radius} fill="none" stroke="var(--ring-track)" strokeWidth="11" />
         <circle className="ring-progress" cx="66" cy="66" r={radius} fill="none" stroke={remaining < 0 ? 'var(--warning)' : 'var(--accent)'} strokeWidth="11" strokeLinecap="round" strokeDasharray={circumference} strokeDashoffset={circumference * (1 - Math.min(1, ratio))} />
       </svg>
-      <div className="ring-center"><small className="ring-kicker">{remaining < 0 ? 'חריגה' : 'נותרו'}</small><strong className="num">{fmt(Math.abs(remaining))}</strong><small>{remaining < 0 ? 'קל׳ מעל היעד' : incomplete ? 'קל׳ · הערכה חלקית' : 'קל׳ לפי הרישום'}</small><small className="ring-target num">נצרכו {fmt(consumed)} מתוך {fmt(target)}</small></div>
+      <div className="ring-center"><small className="ring-kicker">{remaining < 0 ? (incomplete ? 'חריגה של לפחות' : 'חריגה') : incomplete ? 'נותרו לכל היותר' : 'נותרו'}</small><strong className="num">{incomplete ? (remaining >= 0 ? '≤' : '≥') : ''}{fmt(Math.abs(remaining))}</strong><small>{remaining < 0 ? 'קל׳ מעל היעד' : incomplete ? 'קל׳ · הערכה חלקית' : 'קל׳ לפי הרישום'}</small><small className="ring-target num">נצרכו {fmt(consumed)}{incomplete ? '+' : ''} מתוך {fmt(target)}</small></div>
     </div>
   );
 }

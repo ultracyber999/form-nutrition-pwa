@@ -7,10 +7,10 @@ import { Card, DateNavigator, PageHeader } from '../components/common';
 import { fmt, nullableNumber, shortDateLabel } from '../utils';
 
 export function CheckInScreen() {
-  const { repo, refresh, setAnnounce } = useForm();
+  const { repo, refresh, setAnnounce, timezone } = useForm();
   const params = useParams();
   const navigate = useNavigate();
-  const date = params.date ?? todayInTimeZone('Asia/Jerusalem');
+  const date = params.date ?? todayInTimeZone(timezone);
   const [weight, setWeight] = useState('');
   const [waist, setWaist] = useState('');
   const [steps, setSteps] = useState('');
@@ -65,10 +65,11 @@ export function CheckInScreen() {
       if (weightValue !== null && (weightValue < 35 || weightValue > 350)) throw new Error('משקל חורג מגבולות הקלט הרחבים');
       if (waistValue !== null && (waistValue < 30 || waistValue > 250)) throw new Error('היקף חורג מגבולות הקלט הרחבים');
       const measuredAt = new Date().toISOString();
-      if (weightValue !== null) await repo.saveMeasurement({ type: 'weight', value: weightValue, unit: 'kg', measuredAt, localDate: date, source: 'manual', externalSampleId: null, preferred: true });
-      if (waistValue !== null) await repo.saveMeasurement({ type: 'waist', value: waistValue, unit: 'cm', measuredAt, localDate: date, source: 'manual', externalSampleId: null, preferred: true });
+      const measurements = [];
+      if (weightValue !== null) measurements.push({ type: 'weight' as const, value: weightValue, unit: 'kg' as const, measuredAt, localDate: date, source: 'manual' as const, externalSampleId: null, preferred: true });
+      if (waistValue !== null) measurements.push({ type: 'waist' as const, value: waistValue, unit: 'cm' as const, measuredAt, localDate: date, source: 'manual' as const, externalSampleId: null, preferred: true });
       const sleepHours = nullableNumber(sleep);
-      await repo.saveCheckin({
+      await repo.saveDailyCheckinBundle({
         localDate: date,
         steps: nullableNumber(steps),
         waterMl: nullableNumber(water),
@@ -77,7 +78,7 @@ export function CheckInScreen() {
         hunger1to5: nullableNumber(hunger),
         energy1to5: nullableNumber(energy),
         notes: notes.trim() || null
-      });
+      }, measurements);
       setDirty(false);
       refresh();
       setAnnounce('הצ׳ק-אין נשמר במכשיר');
