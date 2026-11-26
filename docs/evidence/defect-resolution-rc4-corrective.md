@@ -11,7 +11,7 @@ Corrective implementation commit: `a1c4843e6e53c0d4f62ad57d35e4db2c7061b837` (`a
 - Corrective browser/application validation: 9/9 PASS in Chromium against the exact final production service-worker build `form-shell-build-707cb94dc352` (`docs/evidence/corrective-validation-results.json`).
 - Production durability validation: install, offline CRUD/persistence, upgrade activation, stale shell update, concurrent access, backup/restore, interrupted restart, failed-update recovery and rollback compatibility PASS; deterministic quota failure remains BLOCKED; schema migration remains NOT APPLICABLE because the production schema is still version 1 (`docs/evidence/durability-validation-results.json`).
 - WebKit/WPE golden slice and offline persistence: PASS at exact final build; this remains Linux WebKit/WPE, not Safari/physical iPhone (`docs/evidence/webkit-validation-results.json`).
-- Accessibility regression: 7/7 automated checks PASS; screen reader remains NOT RUN on this Linux VM (`docs/evidence/accessibility-corrective-results.json`).
+- Accessibility regression: axe reported 0 violations on six core routes; dialog/keyboard/target/reduced-motion/text-scaling/zoom/reflow checks PASS; text-and-semantic output is INFO; screen reader remains NOT RUN on this Linux VM (`docs/evidence/accessibility-corrective-results.json`).
 
 ## F01 — coaching safety integration
 
