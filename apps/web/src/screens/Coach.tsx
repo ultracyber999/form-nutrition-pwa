@@ -40,47 +40,63 @@ export function CoachScreen() {
   const { repo, refresh, setAnnounce, timezone } = useForm();
   const today = todayInTimeZone(timezone);
   const [confirming, setConfirming] = useState(false);
-  const [effectiveDate, setEffectiveDate] = useState(today);
+  const [effectiveDateOverride, setEffectiveDateOverride] = useState<string | null>(null);
+  const effectiveDate = effectiveDateOverride ?? today;
   const [proposedKcal, setProposedKcal] = useState('');
   const [error, setError] = useState('');
-  const state = useAsync(async () => {
+  async function loadSnapshot(asOfDate: string) {
     const [plans, goal, measurements, diaryDays, foodEntries, checkins, reviews] = await Promise.all([
       repo.listPlans(), repo.getCurrentGoal(), repo.listMeasurements(), repo.listDiaryDays(), repo.listFoodEntries(), repo.listCheckins(), repo.listCoachReviews()
     ]);
-    const todaysCheckin = checkins.find((row) => row.localDate === today);
-    const result = reviewCoach({ asOfDate: today, timezone, plans, goal, measurements, diaryDays, foodEntries, checkins, safety: { paused: goal?.status === 'paused', concerningSymptoms: todaysCheckin?.concerningSymptoms === true } });
+    const todaysCheckin = checkins.find((row) => row.localDate === asOfDate);
+    const result = reviewCoach({ asOfDate, timezone, plans, goal, measurements, diaryDays, foodEntries, checkins, safety: { paused: goal?.status === 'paused', concerningSymptoms: todaysCheckin?.concerningSymptoms === true } });
     return { result, plans, reviews };
-  }, []);
+  }
+  const state = useAsync(() => loadSnapshot(today), [today, timezone]);
   if (state.loading) return <PageHeader kicker="FORM / COACH" title="סקירה והמלצות" subtitle="מחשב ראיות…" />;
   if (state.error || !state.data) return <div className="notice danger" role="alert">{state.error ?? 'שגיאת חישוב'}</div>;
   const { result, plans, reviews } = state.data;
   const activePlan = plans.filter((plan) => plan.id === result.evidence.planId).at(-1) ?? plans.at(-1) ?? null;
   const stale = reviews[0] && reviews[0].inputFingerprint !== result.inputFingerprint;
 
-  async function saveReview() {
-    if (!activePlan) return;
+  async function saveReviewSnapshot(snapshot: NonNullable<typeof state.data>, asOfDate: string, planId: string) {
     await repo.saveCoachReview({
-      id: newUuid(), asOfDate: today, planId: activePlan.id, policyVersion: result.policyVersion, inputFingerprint: result.inputFingerprint,
-      evidenceJson: JSON.parse(JSON.stringify(result.evidence)) as Record<string, unknown>, status: result.status, reasonCodes: result.reasonCodes,
-      suggestionJson: JSON.parse(JSON.stringify(result.suggestion)) as Record<string, unknown>, createdAt: new Date().toISOString()
+      id: newUuid(), asOfDate, planId, policyVersion: snapshot.result.policyVersion, inputFingerprint: snapshot.result.inputFingerprint,
+      evidenceJson: JSON.parse(JSON.stringify(snapshot.result.evidence)) as Record<string, unknown>, status: snapshot.result.status, reasonCodes: snapshot.result.reasonCodes,
+      suggestionJson: JSON.parse(JSON.stringify(snapshot.result.suggestion)) as Record<string, unknown>, createdAt: new Date().toISOString()
     });
     refresh();
     setAnnounce('הסקירה נשמרה בהיסטוריה');
   }
 
+  async function saveReview() {
+    if (!activePlan || !state.data) return;
+    await saveReviewSnapshot(state.data, today, activePlan.id);
+  }
+
   async function applyPlan() {
     setError('');
-    if (!activePlan) return;
-    const kcal = Number(proposedKcal);
-    if (!Number.isFinite(kcal)) return setError('יש להזין יעד קלורי תקין');
-    const carbG = deriveCarbTargetG(kcal, activePlan.proteinG, activePlan.fatG);
-    const errors = validatePlanTargets({ kcal, proteinG: activePlan.proteinG, fatG: activePlan.fatG, carbG });
-    if (errors.length) return setError(errors.join('; '));
-    await repo.createPlanRevision({ ...activePlan, effectiveFrom: effectiveDate, kcal, carbG, reason: 'שינוי מאושר בעקבות סקירה — אישור משתמש מפורש' });
-    await saveReview();
-    setConfirming(false);
-    refresh();
-    setAnnounce('נוצרה גרסת תכנית חדשה. היסטוריה לא השתנתה.');
+    try {
+      const currentToday = todayInTimeZone(timezone);
+      const currentSnapshot = await loadSnapshot(currentToday);
+      const currentActivePlan = currentSnapshot.plans.filter((plan) => plan.id === currentSnapshot.result.evidence.planId).at(-1) ?? currentSnapshot.plans.at(-1) ?? null;
+      if (!currentActivePlan) return;
+      if (currentSnapshot.result.suggestion.kind !== 'small-calorie-adjustment-discussion') {
+        return setError('ההמלצה השתנתה או אינה זמינה עוד. השינוי לא הוחל; יש לבצע סקירה מחדש.');
+      }
+      const kcal = Number(proposedKcal);
+      if (!Number.isFinite(kcal)) return setError('יש להזין יעד קלורי תקין');
+      const carbG = deriveCarbTargetG(kcal, currentActivePlan.proteinG, currentActivePlan.fatG);
+      const errors = validatePlanTargets({ kcal, proteinG: currentActivePlan.proteinG, fatG: currentActivePlan.fatG, carbG });
+      if (errors.length) return setError(errors.join('; '));
+      await repo.createPlanRevision({ ...currentActivePlan, effectiveFrom: effectiveDateOverride ?? currentToday, kcal, carbG, reason: 'שינוי מאושר בעקבות סקירה — אישור משתמש מפורש' });
+      await saveReviewSnapshot(currentSnapshot, currentToday, currentActivePlan.id);
+      setConfirming(false);
+      refresh();
+      setAnnounce('נוצרה גרסת תכנית חדשה. היסטוריה לא השתנתה.');
+    } catch (cause) {
+      setError(cause instanceof Error ? cause.message : 'השינוי לא הוחל');
+    }
   }
 
   const tone = result.status.includes('fast') || result.status.includes('safety') || result.status.includes('recovery') ? 'danger' : result.status.includes('review') || result.status.includes('adjustment') ? 'warn' : '';
@@ -106,7 +122,7 @@ export function CoachScreen() {
           <p>השינוי ייצור גרסת תכנית חדשה החל מתאריך שייבחר. ימים קודמים יישארו מוערכים לפי התכנית הקודמת.</p>
           <div className="inline-fields">
             <label className="field"><span>יעד חדש (קל׳)</span><input className="input" inputMode="decimal" value={proposedKcal} onChange={(event) => setProposedKcal(event.target.value)} /></label>
-            <label className="field"><span>בתוקף מתאריך</span><input className="input" type="date" value={effectiveDate} onChange={(event) => setEffectiveDate(event.target.value)} /></label>
+            <label className="field"><span>בתוקף מתאריך</span><input className="input" type="date" value={effectiveDate} onChange={(event) => setEffectiveDateOverride(event.target.value === today ? null : event.target.value)} /></label>
           </div>
           <p className="card-muted">יעד נוכחי <bdi className="num">{fmt(activePlan.kcal)}</bdi> ← יעד מוצע <bdi className="num">{fmt(Number(proposedKcal) || null)}</bdi>. ההמלצה אינה מחייבת ואינה תחליף לייעוץ מקצועי.</p>
           {error ? <div className="notice danger" role="alert">{error}</div> : null}

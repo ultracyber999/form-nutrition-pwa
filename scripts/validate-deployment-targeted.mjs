@@ -86,6 +86,56 @@ try {
     method: 'Playwright clock.fastForward, documented as laptop-close/reopen semantics; focus/visibility listeners also installed'
   };
   await clockContext.close();
+
+  // Coach dependency regression: a continuously open Coach recomputes after midnight and revalidates safety immediately before applying.
+  const coachClockContext = await browser.newContext({ viewport: { width: 390, height: 844 } });
+  const coachPage = await coachClockContext.newPage();
+  await coachPage.clock.install({ time: new Date('2026-11-25T21:59:20.000Z') });
+  const coachNav = async (route) => { await coachPage.goto(`${base}${route}`, { waitUntil: 'networkidle' }); await coachPage.addScriptTag({ url: '/test-utils.js' }); await coachPage.waitForFunction(() => window.formTest); };
+  await coachNav('/today');
+  await coachPage.evaluate(async () => {
+    await window.formTest.ensureBase();
+    const repo = window.formTest.repo;
+    const zone = 'Asia/Jerusalem';
+    const fmtDate = (date) => new Intl.DateTimeFormat('en-CA', { timeZone: zone, year: 'numeric', month: '2-digit', day: '2-digit' }).format(date);
+    const today = fmtDate(new Date());
+    const utcDay = (iso) => new Date(`${iso}T00:00:00Z`);
+    const add = (iso, days) => new Date(utcDay(iso).getTime() + days * 86400000).toISOString().slice(0, 10);
+    for (let offset = -23; offset <= -1; offset += 1) {
+      const date = add(today, offset);
+      await repo.addManualEntry({ localDate: date, mealType: 'other', label: `coach dependency ${date}`, nutrients: { kcal: 2000, proteinG: 150, carbG: 200, fatG: 65, fiberG: 30 } });
+      await repo.markDayComplete(date);
+      await repo.saveMeasurement({ type: 'weight', value: 90, unit: 'kg', measuredAt: `${date}T06:00:00.000Z`, localDate: date, source: 'manual', externalSampleId: null });
+      await repo.saveCheckin({ localDate: date, steps: 8000, waterMl: 2000, sleepMinutes: 450, trainingStatus: 'rest', hunger1to5: 2, energy1to5: 4, notes: null });
+    }
+  });
+  await coachNav('/coach');
+  await coachPage.getByRole('button', { name: 'תצוגת שינוי מוצעת' }).click();
+  const initialEffectiveDate = await coachPage.locator('input[type="date"]').first().inputValue();
+  await coachPage.clock.fastForward(70000);
+  await coachPage.waitForFunction(() => document.body.innerText.includes('2026-11-26'), null, { timeout: 5000 }).catch(() => {});
+  await coachPage.waitForTimeout(200);
+  const rolloverBody = await coachPage.locator('body').innerText();
+  const rolloverEffectiveDate = await coachPage.locator('input[type="date"]').first().inputValue();
+  report.checks.coachMidnightDateDependencies = {
+    status: initialEffectiveDate === '2026-11-25' && rolloverEffectiveDate === '2026-11-26' && rolloverBody.includes('2026-11-26') ? 'PASS' : 'FAIL',
+    initialEffectiveDate,
+    rolloverEffectiveDate,
+    asOfUpdated: rolloverBody.includes('2026-11-26')
+  };
+  const planCountBefore = await coachPage.evaluate(async () => (await window.formTest.repo.listPlans()).length);
+  await coachPage.evaluate(() => window.formTest.repo.saveCheckin({ localDate: '2026-11-26', steps: null, waterMl: null, sleepMinutes: null, trainingStatus: null, hunger1to5: null, energy1to5: null, notes: null, concerningSymptoms: true }));
+  await coachPage.getByRole('button', { name: 'אישור ויצירת גרסה חדשה' }).click();
+  await coachPage.waitForTimeout(1000);
+  const safetyBody = await coachPage.locator('body').innerText();
+  const planCountAfter = await coachPage.evaluate(async () => (await window.formTest.repo.listPlans()).length);
+  report.checks.coachSafetyRevalidationBeforeApply = {
+    status: planCountAfter === planCountBefore && safetyBody.includes('ההמלצה השתנתה') ? 'PASS' : 'FAIL',
+    planCountBefore,
+    planCountAfter,
+    staleWarningVisible: safetyBody.includes('ההמלצה השתנתה')
+  };
+  await coachClockContext.close();
   await browser.close();
 } finally {
   try { await browser?.close(); } catch { /* browser may already be closed */ }
