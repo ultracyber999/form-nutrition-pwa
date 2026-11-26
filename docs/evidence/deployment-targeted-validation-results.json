@@ -24,6 +24,18 @@
       "beforeMidnight": "2026-11-25",
       "afterMidnight": "2026-11-26",
       "method": "Playwright clock.fastForward, documented as laptop-close/reopen semantics; focus/visibility listeners also installed"
+    },
+    "coachMidnightDateDependencies": {
+      "status": "PASS",
+      "initialEffectiveDate": "2026-11-25",
+      "rolloverEffectiveDate": "2026-11-26",
+      "asOfUpdated": true
+    },
+    "coachSafetyRevalidationBeforeApply": {
+      "status": "PASS",
+      "planCountBefore": 1,
+      "planCountAfter": 1,
+      "staleWarningVisible": true
     }
   }
 }
