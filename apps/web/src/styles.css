@@ -372,3 +372,112 @@ body {
 .training-page .meal-row {overflow-wrap:anywhere;gap:8px;}
 .training-page .meal-row>div {min-width:0;}
 @media(max-width:420px){.training-metrics{grid-template-columns:1fr 1fr}.training-metrics>div:first-child{grid-column:1/-1}.training-page .training-hero>.split{flex-wrap:wrap}.training-page .training-exercise{padding:9px}}
+
+/* NIVNE / brand system — editorial sport, quiet surfaces, purposeful contrast. */
+body {background:var(--bg);}
+.brand-lockup {display:grid;gap:5px;justify-items:start;max-width:100%;}
+.brand {display:flex;align-items:center;gap:8px;font-size:31px;font-weight:950;letter-spacing:-.075em;line-height:1;}
+.brand-mark {width:34px;height:34px;}
+.brand-tagline {font-size:9px;font-weight:800;letter-spacing:.19em;color:var(--muted);padding-inline-start:42px;}
+.side-nav {background:var(--bg);border-color:var(--line);}
+.side-nav .brand-lockup {padding-block:8px 14px;}
+.side-nav .side-subtitle {text-align:start;margin:0;font-size:10px;letter-spacing:.13em;}
+.side-links a {border-radius:10px;}
+.side-links a[aria-current='page'] {background:var(--accent);color:var(--on-accent);}
+.topbar {margin-block-end:24px;padding-block:5px 13px;border-block-end:1px solid var(--line);}
+.topbar .icon-button {margin-inline-start:0;flex-shrink:0;}
+.topbar .top-quick-add {margin-inline-start:auto;margin-block-start:0;width:44px;height:44px;border-radius:13px;background:var(--accent);color:var(--on-accent);font-size:29px;box-shadow:none;border:0;}
+.topbar .top-quick-add span {transform:none;}
+.topbar .pill {font-size:10px;max-width:100px;}
+.mobile-nav {background:var(--surface);border-block-start:1px solid var(--line);box-shadow:0 -5px 22px rgb(0 0 0 / .10);gap:4px;padding-inline:8px;}
+.mobile-nav a {font-size:11px;gap:5px;border-radius:10px;min-height:50px;}
+.mobile-nav a[aria-current='page'] {background:color-mix(in srgb,var(--accent) 12%,transparent);color:var(--accent);}
+.page-heading,.daily-heading {padding-block:5px 10px;}
+.page-title,.daily-heading .page-title {letter-spacing:-.045em;line-height:1.12;font-weight:900;}
+.route-kicker,.daily-heading .route-kicker {display:flex;align-items:center;gap:7px;direction:ltr;unicode-bidi:isolate;justify-content:flex-end;font-size:10px;letter-spacing:.18em;margin-block-end:9px;}
+.section-index-mark {width:7px;height:7px;display:inline-block;background:var(--accent);transform:skew(-16deg);}
+.card {border:1px solid var(--line);border-radius:16px;box-shadow:none;}
+:root[data-theme='light'] .card {box-shadow:0 3px 12px rgb(18 20 17 / .035);}
+.card h2,.card h3 {font-weight:850;letter-spacing:-.018em;}
+.card h2 {font-size:19px;}
+.card-muted {line-height:1.55;}
+.primary-button,.secondary-button,.ghost-button,.danger-button {border-radius:11px;letter-spacing:-.01em;}
+.primary-button {box-shadow:none;}
+.secondary-button {background:color-mix(in srgb,var(--surface) 80%,var(--elevated));}
+.input,input.input,select.input,textarea.input {border-radius:10px;background:var(--bg);}
+:root[data-theme='light'] .input,:root[data-theme='light'] input.input,:root[data-theme='light'] select.input,:root[data-theme='light'] textarea.input {background:#F8F9F5;}
+.hero-card,.command-center .hero-card {background:var(--surface);border-radius:20px;padding:18px;}
+.hero-card .primary-button {border-radius:11px;}
+.hero-card .ring-wrap {filter:none;}
+.command-center .budget-layout {gap:18px;}
+.command-center .ring-wrap {width:188px;height:188px;}
+.ring-center strong {font-size:clamp(36px,8vw,48px);font-weight:950;letter-spacing:-.07em;}
+.ring-center small {font-size:12px;}
+.command-center .progress-track {height:7px;box-shadow:none;}
+.command-center .macro-list {gap:10px;}
+.macro-row header {line-height:1.35;}
+.insight-panel {position:relative;overflow:hidden;background:var(--surface);border-color:var(--line);border-inline-start:3px solid var(--accent);border-radius:16px;padding:18px;}
+.insight-panel .insight-kicker {font-size:10px;letter-spacing:.15em;}
+.insight-panel h2 {font-size:clamp(21px,5vw,29px);}
+.insight-panel p {font-size:14px;}
+.journey-panel,.rhythm-panel,.daily-vitals {border-radius:16px;}
+.journey-numbers,.rhythm-summary {margin-block:20px;gap:14px;}
+.journey-numbers strong,.rhythm-summary strong,.training-metrics strong {font-variant-numeric:tabular-nums;letter-spacing:-.055em;}
+.rhythm-day {border-radius:9px;}
+.rhythm-day.current {background:color-mix(in srgb,var(--accent) 9%,var(--surface));}
+.training-page .training-hero {background:var(--surface);border-radius:20px;border-block-start:3px solid var(--accent);}
+.training-metrics {padding-block:22px 10px;}
+.training-metrics>div:first-child strong {font-size:clamp(30px,8vw,48px);color:var(--accent);}
+.training-metrics>div+div {border-inline-start:1px solid var(--line);padding-inline-start:12px;}
+.training-exercise {background:var(--bg);border-radius:13px;}
+.training-set {background:var(--surface);border-radius:10px;}
+.training-session-button {padding:15px 8px;}
+.training-session-button[aria-expanded='true'] {background:var(--elevated);border-radius:10px;}
+.training-session-button>span:last-child {text-align:end;flex-shrink:0;}
+.phase-compare progress {height:8px;}
+.result-option {border-radius:10px;box-shadow:none;}
+.status-panel {background:var(--surface);}
+.dialog {box-shadow:0 -12px 42px rgb(0 0 0 / .3);}
+.onboarding-page {max-width:700px;gap:22px;padding-block:32px;}
+.onboarding-intro {display:grid;gap:13px;}
+.onboarding-intro .brand-lockup {margin-block-end:14px;}
+.onboarding-intro .page-title {font-size:clamp(38px,10vw,68px);line-height:1.08;letter-spacing:-.06em;}
+.onboarding-intro .page-title span {color:var(--accent);}
+.onboarding-intro .page-subtitle {max-width:420px;font-size:16px;}
+.onboarding-disciplines {display:flex;flex-wrap:wrap;direction:ltr;gap:12px;border-block:1px solid var(--line);padding-block:11px;font-size:9px;letter-spacing:.09em;font-weight:800;color:var(--muted);}
+.onboarding-page .privacy-card {border-inline-start:3px solid var(--accent);}
+.onboarding-page .primary-button {width:100%;}
+@media(max-width:767px) {
+ .main-content {padding-inline:14px;}
+ .topbar {gap:7px;}
+ .topbar .brand {font-size:27px;}
+ .topbar .brand-mark {width:30px;height:30px;}
+ .topbar .pill {max-width:70px;line-height:1.25;}
+ .command-center .hero-card {padding:16px;}
+ .command-center .ring-wrap {width:184px;height:184px;}
+ .command-center .budget-layout {gap:16px;}
+ .command-center .hero-actions {grid-template-columns:minmax(0,1.3fr) minmax(0,1fr);}
+ .training-metrics>div+div {padding-inline-start:8px;}
+ .daily-heading {gap:8px;}
+ .daily-coach-link {padding-inline:10px;}
+}
+@media(min-width:768px){
+ .main-content {padding-inline:28px;}
+ .card {padding:22px;}
+ .command-center .ring-wrap {width:220px;height:220px;}
+ .command-center .hero-card {padding:24px;}
+ .command-center .budget-layout {grid-template-columns:minmax(0,1fr) auto;}
+ .topbar .brand {font-size:34px;}
+}
+@media(min-width:1200px){
+ .app-shell {grid-template-columns:244px minmax(0,1fr);}
+ .main-content {padding:38px 36px 48px;}
+ .command-center {gap:20px;}
+ .transformation-grid,.daily-secondary {gap:20px;}
+}
+@media(prefers-reduced-motion:no-preference){
+ .primary-button:hover {background:color-mix(in srgb,var(--accent) 88%,var(--on-accent));}
+ .secondary-button:hover,.training-session-button:hover {background:var(--elevated);}
+ .mobile-nav a:hover,.side-links a:hover {background:color-mix(in srgb,var(--accent) 10%,var(--surface));color:var(--accent);}
+ .side-links a[aria-current='page']:hover {background:var(--accent);color:var(--on-accent);}
+}

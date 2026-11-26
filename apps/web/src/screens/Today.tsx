@@ -28,7 +28,7 @@ export function TodayScreen() {
     return { entries, diary, plans, measurements, checkins, goal, diaryDays, workouts };
   }, [date, timezone]);
 
-  if (state.loading) return <PageHeader kicker="FORM / TODAY" title="טוען את המצב שלך" subtitle="טוען נתונים…" />;
+  if (state.loading) return <PageHeader kicker="NIVNE / TODAY" title="טוען את המצב שלך" subtitle="טוען נתונים…" />;
   if (state.error || !state.data) return <div className="notice danger" role="alert">{state.error ?? 'לא ניתן לטעון'}</div>;
   const { entries, diary, plans, measurements, checkins, goal, diaryDays, workouts } = state.data;
   const plan = resolvePlanForDate(plans, date);
@@ -55,7 +55,7 @@ export function TodayScreen() {
     historical: { title: 'מבט ליום שנבחר', description: 'מוצגים נתונים עד התאריך שנבחר. המלצות עדכניות זמינות בסקירה.', action: 'לסקירה', to: '/coach' },
     safety: { title: 'כרגע העדיפות היא הבטיחות', description: 'התכנית מושהית או שסומן חשש בריאותי. אין כאן המלצה לשינוי תזונה. ניתן לעיין בסקירה ולפנות לייעוץ מתאים.', action: 'לסקירה', to: '/coach' },
     plan: { title: 'מגדירים את המסגרת', description: 'לא נמצאה תכנית לתאריך זה. הגדירו יעדים לפני פירוש התקציב.', action: 'להגדרות', to: '/settings' },
-    log: { title: 'מתחילים ברישום הראשון', description: 'רשמו מה אכלתם. FORM אינו מניח שיום ללא נתונים הוא יום ללא אוכל.', action: 'רישום אוכל', to: '/nutrition/' + date + '?add=1' },
+    log: { title: 'מתחילים ברישום הראשון', description: 'רשמו מה אכלתם. NIVNE אינו מניח שיום ללא נתונים הוא יום ללא אוכל.', action: 'רישום אוכל', to: '/nutrition/' + date + '?add=1' },
     verify: { title: 'משלימים את התמונה', description: 'חלק מנתוני האנרגיה או החלבון חסרים. בדקו את היומן לפני שימוש בסכומים.', action: 'בדיקת היומן', to: '/nutrition/' + date },
     checkin: { title: 'עדכון יומי קצר', description: 'רישום משקל, פעילות ושינה עוזר להבין את המגמה. אין חובה למלא שדה שאינו ידוע.', action: 'צ׳ק-אין', to: '/check-in/' + date },
     complete: { title: 'יום מתועד', description: 'היומן אושר כמלא ויש צ׳ק-אין. אפשר לעיין במגמה ללא שינוי אוטומטי ביעדים.', action: 'להתקדמות', to: '/progress' },
@@ -67,7 +67,7 @@ export function TodayScreen() {
 
   return (
     <div className="stack-lg command-center">
-      <div className="daily-heading"><div><p className="route-kicker">FORM / DAILY</p><h2 className="page-title">{date === today ? 'היום שלי' : 'היום שנבחר'}</h2><p className="page-subtitle">{dateLabel(date)}</p></div><Link className="daily-coach-link secondary-button" to="/coach">סקירת FORM</Link></div>
+      <div className="daily-heading"><div><p className="route-kicker">01 / DAILY</p><h2 className="page-title">{date === today ? 'היום שלי' : 'היום שנבחר'}</h2><p className="page-subtitle">{dateLabel(date)}</p></div><Link className="daily-coach-link secondary-button" to="/coach">סקירת NIVNE</Link></div>
       <DateNavigator date={date} onChange={(next) => { if (next) setSelectedDate(next === today ? null : next); }} />
       {date !== today ? <button className="ghost-button back-today" type="button" onClick={() => setSelectedDate(null)}>חזרה להיום</button> : null}
       <div className="desktop-two today-hero-grid">
@@ -88,7 +88,7 @@ export function TodayScreen() {
           <div className="button-row hero-actions command-actions"><Link className="primary-button" to={`/nutrition/${date}?add=1`}>+ הוספת אוכל</Link><Link className="secondary-button" to={`/check-in/${date}`}>צ׳ק-אין</Link></div>
         </Card>
         <Card className="insight-panel">
-          <div className="insight-kicker"><span className="insight-mark" aria-hidden="true">✦</span><span>FORM / DAILY FOCUS</span></div>
+          <div className="insight-kicker"><span className="insight-mark" aria-hidden="true">✦</span><span>NIVNE / DAILY FOCUS</span></div>
           <h2>{action.title}</h2><p>{action.description}</p><Link className="secondary-button" to={action.to}>{action.action}<span aria-hidden="true"> ←</span></Link>
           <small className="card-muted">מבוסס על הנתונים שנרשמו · לא ייעוץ רפואי</small>
         </Card>

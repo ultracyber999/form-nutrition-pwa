@@ -14,7 +14,7 @@ export function ProgressScreen() {
     const [measurements, entries, diaryDays, goal] = await Promise.all([repo.listMeasurements(), repo.listFoodEntries(), repo.listDiaryDays(), repo.getActiveGoal()]);
     return { measurements, entries, diaryDays, goal };
   }, []);
-  if (state.loading) return <PageHeader kicker="FORM / PROGRESS" title="התקדמות לאורך זמן" subtitle="טוען נתונים…" />;
+  if (state.loading) return <PageHeader kicker="04 / EVOLVE" title="התקדמות לאורך זמן" subtitle="טוען נתונים…" />;
   if (state.error || !state.data) return <div className="notice danger" role="alert">{state.error ?? 'שגיאת טעינה'}</div>;
   const weightsAll = preferredDailyMeasurements(state.data.measurements, 'weight');
   const waistsAll = preferredDailyMeasurements(state.data.measurements, 'waist');
@@ -28,7 +28,7 @@ export function ProgressScreen() {
 
   return (
     <div className="stack-lg">
-      <PageHeader kicker="FORM / PROGRESS" title="התקדמות לאורך זמן" subtitle="נקודות אמיתיות בלבד, פערים גלויים, וטבלה נגישה לכל גרף." />
+      <PageHeader kicker="04 / EVOLVE" title="התקדמות לאורך זמן" subtitle="נקודות אמיתיות בלבד, פערים גלויים, וטבלה נגישה לכל גרף." />
       <div className="segmented" role="group" aria-label="טווח תאריכים">{(['7d','30d','90d','all'] as RangeKey[]).map((key) => <button key={key} type="button" aria-pressed={range === key} onClick={() => setRange(key)}>{key === 'all' ? 'הכול' : key.replace('d', ' ימים')}</button>)}</div>
       <div className="grid grid-4">
         <MetricTile label="משקל אחרון" value={latestWeight} digits={1} unit="ק״ג" context={weightsAll.at(-1) ? `מדידה ${weightsAll.at(-1)?.localDate}` : 'אין מדידות'} icon="▣" />

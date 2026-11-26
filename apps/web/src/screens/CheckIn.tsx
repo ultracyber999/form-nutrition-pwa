@@ -92,12 +92,12 @@ export function CheckInScreen() {
     }
   }
 
-  if (state.loading) return <PageHeader kicker="FORM / CHECKIN" title="צ׳ק-אין יומי" subtitle="טוען נתונים…" />;
+  if (state.loading) return <PageHeader kicker="06 / RECOVER" title="צ׳ק-אין יומי" subtitle="טוען נתונים…" />;
   const measurements = state.data?.measurements ?? [];
 
   return (
     <div className="stack-lg">
-      <PageHeader kicker="FORM / CHECKIN" title="צ׳ק-אין יומי" subtitle="רישום קצר של מדדים בפועל. שדה ריק משמעו לא ידוע — לא אפס." />
+      <PageHeader kicker="06 / RECOVER" title="צ׳ק-אין יומי" subtitle="רישום קצר של מדדים בפועל. שדה ריק משמעו לא ידוע — לא אפס." />
       <DateNavigator date={date} onChange={(next) => {
         if (!dirty || window.confirm('יש שינויים שלא נשמרו. לעבור תאריך בלי שמירה?')) void navigate(`/check-in/${next}`);
       }} />
@@ -121,7 +121,7 @@ export function CheckInScreen() {
         </div>
         <div className="field"><label htmlFor="notes">הערות</label><textarea className="input" id="notes" value={notes} onChange={(e) => { setNotes(e.target.value); setDirty(true); }} /></div>
         <label className="check-row" htmlFor="concerning-symptoms"><input id="concerning-symptoms" type="checkbox" checked={concerningSymptoms} onChange={(e) => { setConcerningSymptoms(e.target.checked); setDirty(true); }} /><span>נרשמו היום תסמינים מדאיגים</span></label>
-        {concerningSymptoms ? <div className="notice danger">אם מדובר בהתעלפות, כאב בחזה או חולשה חמורה — פנו לבדיקה רפואית דחופה. FORM לא יציע הפחתת קלוריות במצב זה.</div> : null}
+        {concerningSymptoms ? <div className="notice danger">אם מדובר בהתעלפות, כאב בחזה או חולשה חמורה — פנו לבדיקה רפואית דחופה. NIVNE לא יציע הפחתת קלוריות במצב זה.</div> : null}
         {error ? <div className="notice danger" role="alert">{error}</div> : null}
         <div className="button-row"><button className="primary-button" type="button" disabled={saving} onClick={() => void save()}>{saving ? 'שומר במכשיר…' : 'שמירת צ׳ק-אין'}</button>{dirty ? <span className="pill warn">יש שינויים שלא נשמרו</span> : <span className="pill good">הכול שמור</span>}</div>
       </Card>

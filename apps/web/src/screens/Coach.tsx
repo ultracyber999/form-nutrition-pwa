@@ -53,7 +53,7 @@ export function CoachScreen() {
     return { result, plans, reviews };
   }
   const state = useAsync(() => loadSnapshot(today), [today, timezone]);
-  if (state.loading) return <PageHeader kicker="FORM / COACH" title="סקירה והמלצות" subtitle="מחשב ראיות…" />;
+  if (state.loading) return <PageHeader kicker="05 / INSIGHT" title="סקירה והמלצות" subtitle="מחשב ראיות…" />;
   if (state.error || !state.data) return <div className="notice danger" role="alert">{state.error ?? 'שגיאת חישוב'}</div>;
   const { result, plans, reviews } = state.data;
   const activePlan = plans.filter((plan) => plan.id === result.evidence.planId).at(-1) ?? plans.at(-1) ?? null;
@@ -103,7 +103,7 @@ export function CoachScreen() {
 
   return (
     <div className="stack-lg">
-      <PageHeader kicker="FORM / COACH" title="סקירה והמלצות" subtitle="סקירה דטרמיניסטית ושקופה. אין שינוי אוטומטי ביעדים." />
+      <PageHeader kicker="05 / INSIGHT" title="סקירה והמלצות" subtitle="סקירה דטרמיניסטית ושקופה. אין שינוי אוטומטי ביעדים." />
       <Card className={`status-panel ${tone}`}>
         <div className="split"><h2>{statusText[result.status]}</h2><span className={`pill ${tone === 'danger' ? 'danger' : tone === 'warn' ? 'warn' : 'good'}`}>{tone === 'danger' ? 'דורש תשומת לב' : tone === 'warn' ? 'לבדיקה' : 'מסלול יציב'}</span></div>
         <p>גרסת מדיניות <bdi className="num">{result.policyVersion}</bdi> · נכון ל־<bdi className="num">{result.evidence.asOfDate}</bdi></p>

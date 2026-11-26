@@ -2,6 +2,7 @@ import { NavLink, useNavigate } from 'react-router-dom';
 import type { ReactNode, RefObject } from 'react';
 import { todayInTimeZone } from '@form/domain';
 import { useEffect, useState } from 'react';
+import { Brand } from './Brand';
 import { useForm } from '../context';
 
 type NavGlyph = 'today' | 'nutrition' | 'progress' | 'coach' | 'settings' | 'checkin' | 'training' | 'sun' | 'moon';
@@ -48,8 +49,8 @@ export function AppShell({ children, headingRef }: { children: ReactNode; headin
     <div className="app-shell">
       <a className="skip-link" href="#content">דלג לתוכן</a>
       <nav className="side-nav" aria-label="ניווט ראשי">
-        <h1 className="brand">FORM<small>.</small></h1>
-        <div className="side-subtitle">Personal body intelligence</div>
+        <Brand tagline />
+        <div className="side-subtitle">PERSONAL PERFORMANCE</div>
         <div className="side-links">
           {navItems.map((item) => <NavLink key={item.to} to={item.to} aria-label={item.label}><NavIcon name={item.icon}/>{item.label}</NavLink>)}
           <NavLink to={`/check-in/${today}`}><NavIcon name="checkin"/>צ׳ק-אין</NavLink>
@@ -59,8 +60,9 @@ export function AppShell({ children, headingRef }: { children: ReactNode; headin
       </nav>
       <main id="content" className="main-content" tabIndex={-1}>
         <div className="topbar topbar-mobile-only">
-          <h1 className="brand">FORM<small>.</small></h1>
+          <Brand />
           {!online ? <span className="pill warn" role="status">לא מחובר — נשמר מקומית</span> : null}
+          <button className="icon-button mobile-add top-quick-add" type="button" aria-label="הוספת אוכל" onClick={() => void navigate(`/nutrition/${today}?add=1`)}><span aria-hidden="true">+</span></button>
           <button className="icon-button" type="button" aria-label="החלפת ערכת צבעים" onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}><NavIcon name={theme === 'dark' ? 'sun' : 'moon'}/></button>
         </div>
         {!online ? <div className="notice warn offline-notice" role="status">אין חיבור כרגע. ניתן להמשיך לרשום; הנתונים נשארים במכשיר.</div> : null}
@@ -68,9 +70,9 @@ export function AppShell({ children, headingRef }: { children: ReactNode; headin
       </main>
       <nav className="mobile-nav" aria-label="ניווט תחתון">
         <NavLink to="/today"><NavIcon name="today"/>היום</NavLink>
-        <NavLink to="/training"><NavIcon name="training"/>אימונים</NavLink>
-        <button className="mobile-add" type="button" aria-label="הוספת אוכל" onClick={() => void navigate(`/nutrition/${today}?add=1`)}><span aria-hidden>+</span></button>
         <NavLink to={`/nutrition/${today}`}><NavIcon name="nutrition"/>תזונה</NavLink>
+        <NavLink to="/training"><NavIcon name="training"/>אימונים</NavLink>
+        <NavLink to="/progress"><NavIcon name="progress"/>התקדמות</NavLink>
         <NavLink to="/settings"><NavIcon name="settings"/>עוד</NavLink>
       </nav>
       <span className="sr-only" ref={headingRef as RefObject<HTMLSpanElement>} tabIndex={-1} />

@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { deriveCarbTargetG, isValidTimeZone, todayInTimeZone, validatePlanTargets } from '@form/domain';
+import { Brand } from '../components/Brand';
 import { useForm } from '../context';
 import { fmt, nullableNumber } from '../utils';
 
@@ -74,17 +75,18 @@ export function OnboardingScreen() {
 
   return (
     <main className="onboarding-page">
-      <div>
-        <h1 className="brand">FORM<small>.</small></h1>
-        <p className="route-kicker">FORM / ONBOARDING</p>
-        <h2 className="page-title">מתחילים עם FORM.</h2>
-        <p className="page-subtitle">מעקב פרטי ומקומי. אין חשבון, אין העלאת יומן לענן, ואין שינוי אוטומטי ביעדים.</p>
+      <div className="onboarding-intro">
+        <Brand tagline />
+        <p className="route-kicker">01 / YOUR NEXT CHAPTER</p>
+        <h2 className="page-title">הגוף נבנה.<br/>הכוח נבנה.<br/><span>הדרך שלך.</span></h2>
+        <p className="page-subtitle">תזונה, אימוני כוח והתאוששות במקום אחד. הנתונים שלך נשארים אצלך.</p>
+        <div className="onboarding-disciplines" aria-label="תחומי המערכת"><span>01 / FUEL</span><span>02 / STRENGTH</span><span>03 / EVOLVE</span></div>
       </div>
       <div className="stepper" aria-label={`שלב ${step + 1} מתוך 3`}><span className="active" /><span className={step >= 1 ? 'active' : ''} /><span className={step >= 2 ? 'active' : ''} /></div>
       {step === 0 ? (
         <section className="card privacy-card">
           <h2>פרטיות בשליטתך</h2>
-          <p>הנתונים נשמרים במכשיר זה בלבד בגרסת P0. ייצוא גיבוי זמין בהגדרות. אין התחייבות רפואית והמלצות המערכת אינן תחליף לייעוץ מקצועי.</p>
+          <p>הנתונים נשמרים במכשיר זה בלבד. ייצוא גיבוי זמין בהגדרות. אין התחייבות רפואית והמלצות המערכת אינן תחליף לייעוץ מקצועי.</p>
           <p className="card-muted">אין צורך בשם אמיתי או תאריך לידה. משקל בסיס הוא נקודת ייחוס תכניתית ואינו מדידה מומצאת.</p>
           <div className="button-row"><button className="primary-button" type="button" onClick={() => setStep(1)}>ממשיכים בהקמה</button></div>
         </section>

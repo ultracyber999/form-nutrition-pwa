@@ -18,13 +18,13 @@ export function SettingsScreen() {
     const [profile, goal, plans, counts, entries, preImportBackup] = await Promise.all([repo.getProfile(), repo.getCurrentGoal(), repo.listPlans(), repo.tableCounts(), repo.listFoodEntries(), repo.getLastPreImportBackup()]);
     return { profile, goal, plans, counts, entries, preImportBackup };
   }, []);
-  if (state.loading) return <PageHeader kicker="FORM / SETTINGS" title="הגדרות ונתונים" subtitle="טוען נתונים…" />;
+  if (state.loading) return <PageHeader kicker="07 / CONTROL" title="הגדרות ונתונים" subtitle="טוען נתונים…" />;
   if (state.error || !state.data) return <div className="notice danger" role="alert">{state.error ?? 'שגיאת טעינה'}</div>;
   const { profile, goal, plans, counts, entries, preImportBackup } = state.data;
 
   async function exportJson() {
     const bundle = await repo.exportBundle();
-    downloadText(`FORM-backup-${new Date().toISOString().slice(0, 10)}.json`, JSON.stringify(bundle, null, 2));
+    downloadText(`NIVNE-backup-${new Date().toISOString().slice(0, 10)}.json`, JSON.stringify(bundle, null, 2));
     setNotice('קובץ גיבוי מלא נוצר');
   }
 
@@ -32,7 +32,7 @@ export function SettingsScreen() {
     const stamp = new Date().toISOString().slice(0, 10);
     const rows: Array<Array<string | number>> = [['date','meal','label','quantity','unit','kcal','protein_g','carbs_g','fat_g','fiber_g','deleted']];
     for (const entry of entries) rows.push([entry.localDate, entry.mealType, entry.labelSnapshot, entry.quantity, entry.unit, entry.nutrientSnapshot.kcal ?? '', entry.nutrientSnapshot.proteinG ?? '', entry.nutrientSnapshot.carbG ?? '', entry.nutrientSnapshot.fatG ?? '', entry.nutrientSnapshot.fiberG ?? '', entry.deletedAt ? 1 : 0]);
-    downloadText(`FORM-food-detail-${stamp}.csv`, rows.map((row) => row.map(csvEscape).join(',')).join('\n'), 'text/csv;charset=utf-8');
+    downloadText(`NIVNE-food-detail-${stamp}.csv`, rows.map((row) => row.map(csvEscape).join(',')).join('\n'), 'text/csv;charset=utf-8');
     const byDate = new Map<string, typeof entries>();
     for (const entry of entries.filter((item) => item.deletedAt === null)) byDate.set(entry.localDate, [...(byDate.get(entry.localDate) ?? []), entry]);
     const summary: Array<Array<string | number>> = [['date','entries','kcal','protein_g','carbs_g','fat_g','fiber_g','unknown_kcal_entries']];
@@ -41,7 +41,7 @@ export function SettingsScreen() {
       const unknownKcal = dayEntries.filter((entry) => entry.nutrientSnapshot.kcal === null).length;
       summary.push([date, dayEntries.length, `${sum('kcal')}${unknownKcal ? '+' : ''}`, sum('proteinG'), sum('carbG'), sum('fatG'), sum('fiberG'), unknownKcal]);
     }
-    downloadText(`FORM-food-summary-${stamp}.csv`, summary.map((row) => row.map(csvEscape).join(',')).join('\n'), 'text/csv;charset=utf-8');
+    downloadText(`NIVNE-food-summary-${stamp}.csv`, summary.map((row) => row.map(csvEscape).join(',')).join('\n'), 'text/csv;charset=utf-8');
     setNotice('נוצרו קובצי CSV מפורט ומסכם');
   }
 
@@ -65,7 +65,7 @@ export function SettingsScreen() {
     try {
       const text = kind === 'export' ? importText : legacyText;
       const result = kind === 'export' ? await repo.importBundle(text, mode) : await repo.importLegacy(text, mode);
-      downloadText(`FORM-pre-import-backup-${Date.now()}.json`, JSON.stringify(result.backup, null, 2));
+      downloadText(`NIVNE-pre-import-backup-${Date.now()}.json`, JSON.stringify(result.backup, null, 2));
       refresh();
       setNotice('הייבוא הושלם. גיבוי קודם נשמר מקומית והורדה נוספת נוצרה.');
       setAnnounce('הייבוא הושלם');
@@ -115,7 +115,7 @@ export function SettingsScreen() {
 
   return (
     <div className="stack-lg">
-      <PageHeader kicker="FORM / SETTINGS" title="הגדרות ונתונים" subtitle="תכנית, פרטיות, גיבוי ושחזור — בשליטת המשתמש." />
+      <PageHeader kicker="07 / CONTROL" title="הגדרות ונתונים" subtitle="תכנית, פרטיות, גיבוי ושחזור — בשליטת המשתמש." />
       {error ? <div className="notice danger" role="alert">{error}</div> : null}
       {notice ? <div className="notice">{notice}</div> : null}
       <div className="desktop-two">
@@ -133,16 +133,16 @@ export function SettingsScreen() {
         <div className="stack">
           <Card>
             <h2>פרטיות ומראה</h2>
-            <p className="card-muted">מצב מקומי בלבד: הנתונים נשמרים בדפדפן זה ועלולים להימחק אם הדפדפן מפנה אחסון. אין סנכרון, חשבון, ברקוד, ספק חיצוני או הרשאות בריאות ב־P0.</p>
+            <p className="card-muted">מצב מקומי בלבד: הנתונים נשמרים בדפדפן זה ועלולים להימחק אם הדפדפן מפנה אחסון. אין סנכרון ענן, חשבון, ברקוד, ספק חיצוני או הרשאות בריאות בגרסה זו.</p>
             <div className="button-row"><button className="secondary-button" type="button" onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}>מעבר ל{theme === 'dark' ? 'בהיר' : 'כהה'}</button><button className="secondary-button" type="button" onClick={() => void exportJson()}>ייצוא JSON מלא</button><button className="secondary-button" type="button" onClick={() => exportCsv()}>CSV מפורט+מסכם</button></div>
             <p className="card-muted">PWA: ההתקנה זמינה לאחר טעינה ראשונה ב־HTTPS/localhost דרך תפריט הדפדפן או “הוסף למסך הבית”. מצב לא מקוון נבדק בגרסת build בלבד.</p>
           </Card>
           <Card>
-            <h2>ייבוא ושחזור</h2><p className="card-muted">גיבוי FORM מלא כולל גם אימונים. ייבוא גיבוי ישן ללא אימונים שומר על יומן האימונים הקיים.</p>
-            <FilePicker label="קובץ FORM JSON" onText={setImportText} />
+            <h2>ייבוא ושחזור</h2><p className="card-muted">גיבוי NIVNE מלא כולל גם אימונים. ייבוא גיבוי ישן ללא אימונים שומר על יומן האימונים הקיים.</p>
+            <FilePicker label="קובץ גיבוי NIVNE / FORM JSON" onText={setImportText} />
             <div className="button-row"><button className="secondary-button" type="button" onClick={() => void previewFile('export')}>בדיקת ייבוא</button><button className="primary-button" type="button" disabled={!importText} onClick={() => void applyImport('export', 'merge-skip-duplicates')}>מיזוג בטוח</button><button className="danger-button" type="button" disabled={!importText} onClick={() => void applyImport('export', 'replace-all')}>החלפה מלאה</button></div>
             {preImportBackup ? <p className="notice">קיים גיבוי מקומי אחרון מלפני ייבוא. <button className="secondary-button" type="button" onClick={() => void restorePreImportBackup()}>שחזור גיבוי זה</button></p> : null}
-            <h3>ייבוא FORM 2.0</h3>
+            <h3>ייבוא FORM ישן</h3>
             <FilePicker label="קובץ גיבוי legacy" onText={setLegacyText} />
             <div className="button-row"><button className="secondary-button" type="button" onClick={() => void previewFile('legacy')}>בדיקת legacy</button><button className="primary-button" type="button" disabled={!legacyText} onClick={() => void applyImport('legacy', 'merge-skip-duplicates')}>ייבוא מוזג</button></div>
             {preview ? <pre className="import-preview">{preview}</pre> : null}

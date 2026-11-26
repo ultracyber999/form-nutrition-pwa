@@ -5,7 +5,7 @@ import { fmt } from '../utils';
 export function PageHeader({ kicker, title, subtitle, headingRef }: { kicker: string; title: string; subtitle?: string; headingRef?: React.RefObject<HTMLHeadingElement | null> }) {
   return (
     <div className="page-heading">
-      <p className="route-kicker">{kicker}</p>
+      <p className="route-kicker"><span aria-hidden="true" className="section-index-mark" />{kicker}</p>
       <h2 className="page-title" ref={headingRef} tabIndex={-1}>{title}</h2>
       {subtitle ? <p className="page-subtitle">{subtitle}</p> : null}
     </div>

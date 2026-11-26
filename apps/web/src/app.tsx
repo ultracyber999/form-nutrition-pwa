@@ -1,6 +1,7 @@
 import { Navigate, Route, Routes, useLocation } from 'react-router-dom';
 import { useEffect, useRef, type ReactElement } from 'react';
 import { useForm } from './context';
+import { Brand } from './components/Brand';
 import { AppShell } from './components/AppShell';
 import { OnboardingScreen } from './screens/Onboarding';
 import { TodayScreen } from './screens/Today';
@@ -21,7 +22,7 @@ export function App() {
   }, [location.pathname]);
 
   if (!ready) {
-    return <main className="boot" aria-live="polite"><h1>FORM.</h1><p>טוען נתונים…</p></main>;
+    return <main className="boot" aria-live="polite"><Brand tagline /><p>טוען נתונים…</p></main>;
   }
 
   const shell = (element: ReactElement) => <AppShell headingRef={headingRef}>{element}</AppShell>;

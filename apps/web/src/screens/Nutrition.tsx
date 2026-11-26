@@ -33,7 +33,7 @@ export function NutritionScreen() {
     return { entries, diary, foods, templates, recipes, allEntries };
   }, [date]);
 
-  if (state.loading) return <PageHeader kicker="FORM / NUTRITION" title="יומן התזונה" subtitle="טוען נתונים…" />;
+  if (state.loading) return <PageHeader kicker="02 / FUEL" title="יומן התזונה" subtitle="טוען נתונים…" />;
   if (state.error || !state.data) return <div className="notice danger" role="alert">{state.error ?? 'שגיאת טעינה'}</div>;
   const { entries, diary, foods, templates, recipes, allEntries } = state.data;
   const activeEntries = entries.filter((entry) => entry.deletedAt === null);
@@ -54,7 +54,7 @@ export function NutritionScreen() {
 
   return (
     <div className="stack-lg">
-      <PageHeader kicker="FORM / NUTRITION" title="יומן התזונה" subtitle="רישום מהיר, ידידותי וחוזר — בלי ניחושים ובלי אפסים מומצאים." />
+      <PageHeader kicker="02 / FUEL" title="יומן התזונה" subtitle="כל ארוחה היא חלק מהדרך. רישום מדויק, פשוט ומהיר." />
       <DateNavigator date={date} onChange={(next) => void navigate(`/nutrition/${next}`)} />
       <Card className="hero-card">
         <div className="split"><h2>סיכום היום</h2><span className={`pill ${complete ? 'good' : activeEntries.length ? 'warn' : ''}`}>{complete ? 'יום הושלם' : activeEntries.length ? 'יום חלקי' : 'אין רישום'}</span></div>
