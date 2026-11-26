@@ -4,6 +4,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { newUuid } from '@form/data';
 import { useForm } from '../context';
+import { parseFoodQuery } from '../dailyFocus';
 import { useAsync } from '../useAsync';
 import { Card, DateNavigator, EmptyState, MacroBar, PageHeader } from '../components/common';
 import { fmt, mealLabels, nullableNumber, nutrientText } from '../utils';
@@ -216,7 +217,7 @@ function QuickAddDialog({ foods, priorityFoods = [], initialFoodId = null, templ
 
   const normalize = (value: string) => value.toLocaleLowerCase('he-IL').replace(/[׳'"’`.,()\-\s]+/g, '');
   const results = useMemo(() => {
-    const needle = normalize(query);
+    const needle = normalize(parseFoodQuery(query).name);
     if (!needle) {
       const priorityIds = new Set(priorityFoods.map((food) => food.id));
       return [...priorityFoods, ...foods.filter((food) => !priorityIds.has(food.id))].slice(0, 12);
@@ -225,7 +226,7 @@ function QuickAddDialog({ foods, priorityFoods = [], initialFoodId = null, templ
   }, [foods, priorityFoods, query]);
   const selected = foods.find((food) => food.id === selectedId) ?? null;
   const qty = nullableNumber(quantity);
-  const preview = selected && qty !== null && qty > 0 ? calculateConsumed(selected, qty, 'mass-grams') : null;
+  const preview = selected && qty !== null && qty > 0 && qty <= 5000 ? calculateConsumed(selected, qty, 'mass-grams') : null;
 
   async function execute(action: () => Promise<unknown>, message: string) {
     setError('');
@@ -265,7 +266,7 @@ function QuickAddDialog({ foods, priorityFoods = [], initialFoodId = null, templ
         </div>
         {mode === 'search' ? (
           <div className="form-grid">
-            <label className="field"><span>חיפוש במאגר המקומי</span><input autoFocus className="input" value={query} onChange={(event) => setQuery(event.target.value)} placeholder="חזה עוף, אורז, יוגורט" /></label>
+            <label className="field"><span>חיפוש מהיר · שם או כמות בגרמים</span><input autoFocus className="input" value={query} onChange={(event) => { const next = event.target.value; setQuery(next); setSelectedId(null); const parsed = parseFoodQuery(next); if (parsed.grams !== null) setQuantity(String(parsed.grams)); }} placeholder="180 גרם חזה עוף" /></label><p className="card-muted quick-phrase-hint">אפשר לכתוב למשל 180 גרם חזה עוף. בחרו תוצאה ואשרו את הכמות לפני שמירה. החיפוש מקומי ואינו מנחש ערכים.</p>
             <div className="result-list">{results.map((food) => <button key={food.id} className="result-option" type="button" aria-pressed={selectedId === food.id} onClick={() => setSelectedId(food.id)}><span>{food.name}<small className="card-muted" style={{ display: 'block' }}>{food.preparationState} · לפי 100 ג׳</small></span><bdi className="num">{fmt(food.nutrients.kcal)} קל׳</bdi></button>)}</div>
             {!results.length ? <div className="empty-state">לא נמצא מזון. ניתן להזין ערכים ידנית או לשמור מזון מותאם.</div> : null}
             <div className="inline-fields">

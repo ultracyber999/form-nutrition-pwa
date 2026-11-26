@@ -9,10 +9,9 @@ import { ProgressScreen } from './screens/Progress';
 import { CheckInScreen } from './screens/CheckIn';
 import { CoachScreen } from './screens/Coach';
 import { SettingsScreen } from './screens/Settings';
-import { todayInTimeZone } from '@form/domain';
 
 export function App() {
-  const { ready, needsOnboarding, announce, storageError, timezone } = useForm();
+  const { ready, needsOnboarding, announce, storageError } = useForm();
   const location = useLocation();
   const headingRef = useRef<HTMLHeadingElement | null>(null);
 
@@ -24,7 +23,6 @@ export function App() {
     return <main className="boot" aria-live="polite"><h1>FORM.</h1><p>טוען נתונים…</p></main>;
   }
 
-  const today = todayInTimeZone(timezone);
   const shell = (element: ReactElement) => <AppShell headingRef={headingRef}>{element}</AppShell>;
 
   return (
@@ -39,7 +37,7 @@ export function App() {
         <Route path="/check-in/:date" element={needsOnboarding ? <Navigate to="/onboarding" replace /> : shell(<CheckInScreen />)} />
         <Route path="/coach" element={needsOnboarding ? <Navigate to="/onboarding" replace /> : shell(<CoachScreen />)} />
         <Route path="/settings" element={needsOnboarding ? <Navigate to="/onboarding" replace /> : shell(<SettingsScreen />)} />
-        <Route path="*" element={<Navigate to={needsOnboarding ? '/onboarding' : `/nutrition/${today}`} replace />} />
+        <Route path="*" element={<Navigate to={needsOnboarding ? '/onboarding' : '/today'} replace />} />
       </Routes>
     </>
   );
